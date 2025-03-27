@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+    <gresource prefix="/org/gtk/patea">
+        <file preprocess="xml-stripblanks" compressed="true" alias="ui/main.ui">src/res/ui/main.ui</file>
+    </gresource>
+</gresources>
