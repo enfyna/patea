@@ -15,41 +15,51 @@ LessonState ls_state = { .current = LESSON_NOT_SELECTED };
 GObject* pt_stack;
 
 GObject* term;
-GObject* term_title;
-GObject* test_title;
+
+GObject* title_term;
+GObject* title_test;
+GObject* title_result;
+
 GObject* test_question;
 GObject* test_a;
 GObject* test_b;
 GObject* test_c;
 GObject* test_d;
+
 GObject* lb_result;
+
+GObject* pb_test;
+GObject* pb_term;
+GObject* pb_result;
 
 static void
 prepare_question(Lesson* ls)
 {
-    if (ls->questions[ls->current_question].type == QUESTION_TERMINAL) {
-        gtk_label_set_text(GTK_LABEL(test_title), ls->title);
+    LessonQuestion current = ls->questions[ls->current_question];
+
+    if (current.type == QUESTION_TERMINAL) {
+        gtk_label_set_text(GTK_LABEL(title_test), ls->title);
+        gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pb_term), (float)ls->correct_answers / ls->total_questions);
 
         vte_terminal_feed(VTE_TERMINAL(term), CLEAR_TERMINAL_SCREEN, 6);
-        vte_terminal_feed(VTE_TERMINAL(term),
-            ls->questions[ls->current_question].question,
-            strlen(ls->questions[ls->current_question].question));
+        vte_terminal_feed(VTE_TERMINAL(term), current.question, strlen(current.question));
         vte_terminal_feed_child(VTE_TERMINAL(term), CLEAN_TERMINAL_LINE, 2);
 
         gtk_stack_set_visible_child_name(GTK_STACK(pt_stack), "question_terminal");
-    } else if (ls->questions[ls->current_question].type == QUESTION_TEST) {
-        gtk_label_set_text(GTK_LABEL(test_title), ls->title);
-        gtk_label_set_text(GTK_LABEL(test_question), ls->questions[ls->current_question].question);
+    } else if (current.type == QUESTION_TEST) {
+        gtk_label_set_text(GTK_LABEL(title_test), ls->title);
+        gtk_label_set_text(GTK_LABEL(test_question), current.question);
+        gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pb_test), (float)ls->correct_answers / ls->total_questions);
 
         gtk_widget_set_sensitive(GTK_WIDGET(test_a), true);
         gtk_widget_set_sensitive(GTK_WIDGET(test_b), true);
         gtk_widget_set_sensitive(GTK_WIDGET(test_c), true);
         gtk_widget_set_sensitive(GTK_WIDGET(test_d), true);
 
-        gtk_button_set_label(GTK_BUTTON(test_a), ls->questions[ls->current_question].a);
-        gtk_button_set_label(GTK_BUTTON(test_b), ls->questions[ls->current_question].b);
-        gtk_button_set_label(GTK_BUTTON(test_c), ls->questions[ls->current_question].c);
-        gtk_button_set_label(GTK_BUTTON(test_d), ls->questions[ls->current_question].d);
+        gtk_button_set_label(GTK_BUTTON(test_a), current.a);
+        gtk_button_set_label(GTK_BUTTON(test_b), current.b);
+        gtk_button_set_label(GTK_BUTTON(test_c), current.c);
+        gtk_button_set_label(GTK_BUTTON(test_d), current.d);
 
         gtk_stack_set_visible_child_name(GTK_STACK(pt_stack), "question_test");
     }
@@ -103,33 +113,41 @@ continue_test(long answer)
 {
     Lesson* lesson = lesson_get_from_enum(ls_state.current);
 
-    if (lesson->questions[lesson->current_question].type == QUESTION_TEST) {
-        if (answer == lesson->questions[lesson->current_question].answer) {
-            lesson->correct_answers++;
-        } else {
-            // TODO: play sound ?
-            lesson->correct_answers--;
-            return;
-        }
-    } else if (lesson->questions[lesson->current_question].type == QUESTION_TERMINAL) {
-        g_print("[LESSON] Checking: %s\n", lesson->questions[lesson->current_question].a);
-        int res = system(lesson->questions[lesson->current_question].a);
-        if (res != 0) {
-            lesson->correct_answers--;
-            g_print("[LESSON] Fail!\n");
-            return;
-        }
-        lesson->correct_answers++;
-        g_print("[LESSON] Success!\n");
+    LessonQuestion current = lesson->questions[lesson->current_question];
+
+    bool is_answer_correct = false;
+    if (current.type == QUESTION_TEST) {
+        is_answer_correct = answer == current.answer;
+    } else if (current.type == QUESTION_TERMINAL) {
+        g_print("[LESSON] Checking: %s\n", current.a);
+        int res = system(current.a);
+        is_answer_correct = res == 0;
+    }
+
+    if (is_answer_correct) {
+        g_print("[LESSON] Correct Answer!\n");
+    } else {
+        // TODO: play sound ?
+        g_print("[LESSON] Wrong Answer!\n");
+    }
+
+    lesson->correct_answers += is_answer_correct ? 1 : -1;
+
+    gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pb_term), (float)lesson->correct_answers / lesson->total_questions);
+    gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pb_test), (float)lesson->correct_answers / lesson->total_questions);
+
+    if (!is_answer_correct) {
+        return;
     }
 
     if (++lesson->current_question >= lesson->total_questions) {
-        char* text = calloc(1, 1024);
-        sprintf(text, "%s\n\n%d/%d dogru cevapladin.\n\n", 
-            lesson->title, lesson->correct_answers, lesson->total_questions);
+        gtk_label_set_text(GTK_LABEL(title_result), lesson->title);
+        gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pb_result), (float)lesson->correct_answers / lesson->total_questions);
 
+        char text[1024] = { 0 };
+        sprintf(text, "\n\n%d/%d dogru cevapladin.\n\n",
+            lesson->correct_answers, lesson->total_questions);
         gtk_label_set_text(GTK_LABEL(lb_result), text);
-        free(text);
 
         lesson->correct_answers = 0;
         lesson->current_question = 0;
@@ -181,14 +199,18 @@ activate(GtkApplication* app, gpointer user_data)
     if (gtk_builder_add_from_resource(bd_main, "/org/gtk/patea/ui/main.ui", &error) == 0) {
         g_printerr("[ERROR] Couldnt load file: %s\n", error->message);
         g_clear_error(&error);
-        gtk_main_quit();
+        exit(1);
     }
 
     {
-        term_title = gtk_builder_get_object(bd_main, "lb_term_title");
-        test_title = gtk_builder_get_object(bd_main, "lb_test_title");
+        title_term = gtk_builder_get_object(bd_main, "lb_term_title");
+        title_test = gtk_builder_get_object(bd_main, "lb_test_title");
+        title_result = gtk_builder_get_object(bd_main, "lb_result_title");
         test_question = gtk_builder_get_object(bd_main, "lb_test_question");
-        lb_result = gtk_builder_get_object(bd_main, "lb_lesson_result");
+        lb_result = gtk_builder_get_object(bd_main, "lb_result");
+        pb_test = gtk_builder_get_object(bd_main, "pb_test");
+        pb_term = gtk_builder_get_object(bd_main, "pb_term");
+        pb_result = gtk_builder_get_object(bd_main, "pb_result");
 
         test_a = gtk_builder_get_object(bd_main, "bt_test_a");
         g_signal_connect(test_a, "clicked", G_CALLBACK(cb_send_answer), (long*)0);
@@ -237,8 +259,6 @@ activate(GtkApplication* app, gpointer user_data)
 
         g_signal_connect(term, "commit", G_CALLBACK(cb_term_input), NULL);
         g_signal_connect(term, "eof", G_CALLBACK(cb_term_eof), NULL);
-
-        g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     }
 
     {

@@ -10,14 +10,26 @@
     <property name="margin-right">4</property>
     <property name="margin-top">4</property>
     <property name="margin-bottom">4</property>
-    <property name="stock">gtk-ok</property>
+    <property name="icon-name">gtk-ok</property>
     <property name="icon_size">3</property>
   </object>
   <object class="GtkImage" id="image2">
     <property name="visible">True</property>
     <property name="can-focus">False</property>
-    <property name="stock">gtk-home</property>
+    <property name="icon-name">gtk-home</property>
     <property name="icon_size">5</property>
+  </object>
+  <object class="GtkImage" id="image3">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="icon-name">gtk-home</property>
+    <property name="icon_size">3</property>
+  </object>
+  <object class="GtkImage" id="image4">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="icon-name">gtk-home</property>
+    <property name="icon_size">3</property>
   </object>
   <object class="GtkStack" id="stack">
     <property name="visible">True</property>
@@ -258,6 +270,24 @@
           </packing>
         </child>
         <child>
+          <object class="GtkProgressBar" id="pb_term">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="margin-left">64</property>
+            <property name="margin-right">64</property>
+            <property name="margin-top">8</property>
+            <property name="margin-bottom">8</property>
+            <property name="hexpand">True</property>
+            <property name="pulse-step">1</property>
+            <property name="ellipsize">middle</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
           <object class="GtkScrolledWindow">
             <property name="visible">True</property>
             <property name="can-focus">True</property>
@@ -284,7 +314,7 @@
           <packing>
             <property name="expand">True</property>
             <property name="fill">True</property>
-            <property name="position">1</property>
+            <property name="position">2</property>
           </packing>
         </child>
         <child>
@@ -341,14 +371,16 @@
             </child>
             <child>
               <object class="GtkButton" id="bt_lesson_exit0">
-                <property name="label" translatable="yes">Geri Don</property>
+                <property name="label" translatable="yes">Ana Sayfaya Don</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
+                <property name="image">image4</property>
+                <property name="always-show-image">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">False</property>
+                <property name="fill">True</property>
                 <property name="pack-type">end</property>
                 <property name="position">3</property>
               </packing>
@@ -357,7 +389,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">2</property>
+            <property name="position">3</property>
           </packing>
         </child>
       </object>
@@ -381,6 +413,8 @@
           <object class="GtkLabel" id="lb_test_title">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="margin-left">12</property>
+            <property name="margin-right">12</property>
             <property name="margin-top">12</property>
             <property name="margin-bottom">12</property>
             <property name="label" translatable="yes">Pardus Nedir ?</property>
@@ -389,6 +423,22 @@
             <property name="expand">False</property>
             <property name="fill">True</property>
             <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkProgressBar" id="pb_test">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="margin-left">64</property>
+            <property name="margin-right">64</property>
+            <property name="margin-top">8</property>
+            <property name="margin-bottom">8</property>
+            <property name="pulse-step">1</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
           </packing>
         </child>
         <child>
@@ -404,7 +454,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">1</property>
+            <property name="position">2</property>
           </packing>
         </child>
         <child>
@@ -494,7 +544,7 @@
           <packing>
             <property name="expand">True</property>
             <property name="fill">True</property>
-            <property name="position">2</property>
+            <property name="position">3</property>
           </packing>
         </child>
         <child>
@@ -507,10 +557,11 @@
             <property name="spacing">12</property>
             <child>
               <object class="GtkButton" id="bt_lesson_exit1">
-                <property name="label" translatable="yes">Geri Don</property>
+                <property name="label" translatable="yes">Ana Sayfaya Don</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
+                <property name="image">image3</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -526,7 +577,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">3</property>
+            <property name="position">4</property>
           </packing>
         </child>
       </object>
@@ -547,14 +598,34 @@
         <property name="vexpand">True</property>
         <property name="orientation">vertical</property>
         <child>
-          <object class="GtkLabel" id="lb_lesson_result">
+          <object class="GtkLabel" id="lb_result_title">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="margin-left">12</property>
+            <property name="margin-right">12</property>
+            <property name="margin-top">12</property>
+            <property name="margin-bottom">12</property>
           </object>
           <packing>
-            <property name="expand">True</property>
+            <property name="expand">False</property>
             <property name="fill">True</property>
             <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkProgressBar" id="pb_result">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="margin-left">64</property>
+            <property name="margin-right">64</property>
+            <property name="margin-top">8</property>
+            <property name="margin-bottom">8</property>
+            <property name="pulse-step">1</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
           </packing>
         </child>
         <child>
@@ -563,13 +634,25 @@
             <property name="can-focus">False</property>
             <property name="orientation">vertical</property>
             <child>
-              <placeholder/>
+              <object class="GtkLabel" id="lb_result">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="margin-left">16</property>
+                <property name="margin-right">16</property>
+                <property name="margin-top">16</property>
+                <property name="margin-bottom">16</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
             </child>
           </object>
           <packing>
             <property name="expand">True</property>
             <property name="fill">True</property>
-            <property name="position">1</property>
+            <property name="position">2</property>
           </packing>
         </child>
         <child>
@@ -584,7 +667,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">2</property>
+            <property name="position">3</property>
           </packing>
         </child>
       </object>
