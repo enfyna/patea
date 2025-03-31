@@ -1,4 +1,5 @@
 #include <glib.h>
+#include <gio/gio.h>
 #include <gtk/gtk.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -21,10 +22,7 @@ GObject* title_test;
 GObject* title_result;
 
 GObject* test_question;
-GObject* test_a;
-GObject* test_b;
-GObject* test_c;
-GObject* test_d;
+GObject* test_choices[CHOICE_COUNT];
 
 GObject* lb_result;
 
@@ -35,49 +33,50 @@ GObject* pb_result;
 static void
 prepare_question(Lesson* ls)
 {
-    LessonQuestion current = ls->questions[ls->current_question];
+    LessonQuestion question = ls->questions[ls->current_question];
 
-    if (current.type == QUESTION_TERMINAL) {
+    gdouble fraction = (gdouble)ls->correct_answers / ls->total_questions;
+
+    if (question.type == QUESTION_TERMINAL) {
         gtk_label_set_text(GTK_LABEL(title_test), ls->title);
-        gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pb_term), (float)ls->correct_answers / ls->total_questions);
+        gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pb_term), fraction);
 
         vte_terminal_feed(VTE_TERMINAL(term), CLEAR_TERMINAL_SCREEN, 6);
-        vte_terminal_feed(VTE_TERMINAL(term), current.question, strlen(current.question));
+        vte_terminal_feed(VTE_TERMINAL(term), question.question, strlen(question.question));
+        vte_terminal_feed(VTE_TERMINAL(term),
+            "-------------------------------------------\r\n"
+            "Soruyu cozdukten sonra kontrol et butonuna bas.\r\n",
+            98);
         vte_terminal_feed_child(VTE_TERMINAL(term), CLEAN_TERMINAL_LINE, 2);
 
         gtk_stack_set_visible_child_name(GTK_STACK(pt_stack), "question_terminal");
-    } else if (current.type == QUESTION_TEST) {
+    } else if (question.type == QUESTION_TEST) {
         gtk_label_set_text(GTK_LABEL(title_test), ls->title);
-        gtk_label_set_text(GTK_LABEL(test_question), current.question);
-        gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pb_test), (float)ls->correct_answers / ls->total_questions);
+        gtk_label_set_text(GTK_LABEL(test_question), question.question);
+        gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pb_test), fraction);
 
-        gtk_widget_set_sensitive(GTK_WIDGET(test_a), true);
-        gtk_widget_set_sensitive(GTK_WIDGET(test_b), true);
-        gtk_widget_set_sensitive(GTK_WIDGET(test_c), true);
-        gtk_widget_set_sensitive(GTK_WIDGET(test_d), true);
-
-        gtk_button_set_label(GTK_BUTTON(test_a), current.a);
-        gtk_button_set_label(GTK_BUTTON(test_b), current.b);
-        gtk_button_set_label(GTK_BUTTON(test_c), current.c);
-        gtk_button_set_label(GTK_BUTTON(test_d), current.d);
+        for (size_t i = 0; i < CHOICE_COUNT; i++) {
+            gtk_widget_set_sensitive(GTK_WIDGET(test_choices[i]), true);
+            gtk_button_set_label(GTK_BUTTON(test_choices[i]), question.choice[i]);
+        }
 
         gtk_stack_set_visible_child_name(GTK_STACK(pt_stack), "question_test");
     }
 }
 
 static void
-change_page(const char* page)
+change_page(const char* page_name)
 {
     const gchar* current = gtk_stack_get_visible_child_name(GTK_STACK(pt_stack));
 
-    g_print("[PAGE] from: %s => to: %s\n", current, page);
+    g_print("[PAGE] from: %s => to: %s\n", current, page_name);
 
-    if (!starts_with(page, "lesson_")) {
-        gtk_stack_set_visible_child_name(GTK_STACK(pt_stack), page);
+    if (!starts_with(page_name, "lesson_")) {
+        gtk_stack_set_visible_child_name(GTK_STACK(pt_stack), page_name);
         return;
     }
 
-    enum LESSONS selected = lesson_get_from_page(page);
+    enum LESSONS selected = lesson_get_from_name(page_name);
     if (selected == LESSON_NOT_SELECTED) {
         return; // should not happen
     }
@@ -117,11 +116,20 @@ continue_test(long answer)
 
     bool is_answer_correct = false;
     if (current.type == QUESTION_TEST) {
+        g_print("[LESSON] Checking: user: %ld == answer: %d\n", answer, current.answer);
         is_answer_correct = answer == current.answer;
     } else if (current.type == QUESTION_TERMINAL) {
-        g_print("[LESSON] Checking: %s\n", current.a);
-        int res = system(current.a);
-        is_answer_correct = res == 0;
+        for (size_t i = 0; i < CHOICE_COUNT; i++) {
+            if (strlen(current.choice[i]) == 0) {
+                continue;
+            }
+            g_print("[LESSON] Checking: %s\n", current.choice[i]);
+            int res = system(current.choice[i]);
+            is_answer_correct = res == 0;
+            if (!is_answer_correct) {
+                break;
+            }
+        }
     }
 
     if (is_answer_correct) {
@@ -133,8 +141,10 @@ continue_test(long answer)
 
     lesson->correct_answers += is_answer_correct ? 1 : -1;
 
-    gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pb_term), (float)lesson->correct_answers / lesson->total_questions);
-    gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pb_test), (float)lesson->correct_answers / lesson->total_questions);
+    gdouble fraction = (gdouble)lesson->correct_answers / lesson->total_questions;
+
+    gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pb_term), fraction);
+    gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pb_test), fraction);
 
     if (!is_answer_correct) {
         return;
@@ -142,17 +152,17 @@ continue_test(long answer)
 
     if (++lesson->current_question >= lesson->total_questions) {
         gtk_label_set_text(GTK_LABEL(title_result), lesson->title);
-        gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pb_result), (float)lesson->correct_answers / lesson->total_questions);
+        gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pb_result), fraction);
 
         char text[1024] = { 0 };
-        sprintf(text, "\n\n%d/%d dogru cevapladin.\n\n",
+        sprintf(text, "\n\n%d/%zu dogru cevapladin.\n\n",
             lesson->correct_answers, lesson->total_questions);
         gtk_label_set_text(GTK_LABEL(lb_result), text);
 
         lesson->correct_answers = 0;
         lesson->current_question = 0;
 
-        gtk_stack_set_visible_child_name(GTK_STACK(pt_stack), "lesson_result");
+        change_page("result_lesson");
         return;
     }
 
@@ -199,7 +209,7 @@ activate(GtkApplication* app, gpointer user_data)
     if (gtk_builder_add_from_resource(bd_main, "/org/gtk/patea/ui/main.ui", &error) == 0) {
         g_printerr("[ERROR] Couldnt load file: %s\n", error->message);
         g_clear_error(&error);
-        exit(1);
+        g_application_quit(G_APPLICATION(app));
     }
 
     {
@@ -212,17 +222,17 @@ activate(GtkApplication* app, gpointer user_data)
         pb_term = gtk_builder_get_object(bd_main, "pb_term");
         pb_result = gtk_builder_get_object(bd_main, "pb_result");
 
-        test_a = gtk_builder_get_object(bd_main, "bt_test_a");
-        g_signal_connect(test_a, "clicked", G_CALLBACK(cb_send_answer), (long*)0);
+        test_choices[0] = gtk_builder_get_object(bd_main, "bt_test_a");
+        g_signal_connect(test_choices[0], "clicked", G_CALLBACK(cb_send_answer), (long*)0);
 
-        test_b = gtk_builder_get_object(bd_main, "bt_test_b");
-        g_signal_connect(test_b, "clicked", G_CALLBACK(cb_send_answer), (long*)1);
+        test_choices[1] = gtk_builder_get_object(bd_main, "bt_test_b");
+        g_signal_connect(test_choices[1], "clicked", G_CALLBACK(cb_send_answer), (long*)1);
 
-        test_c = gtk_builder_get_object(bd_main, "bt_test_c");
-        g_signal_connect(test_c, "clicked", G_CALLBACK(cb_send_answer), (long*)2);
+        test_choices[2] = gtk_builder_get_object(bd_main, "bt_test_c");
+        g_signal_connect(test_choices[2], "clicked", G_CALLBACK(cb_send_answer), (long*)2);
 
-        test_d = gtk_builder_get_object(bd_main, "bt_test_d");
-        g_signal_connect(test_d, "clicked", G_CALLBACK(cb_send_answer), (long*)3);
+        test_choices[3] = gtk_builder_get_object(bd_main, "bt_test_d");
+        g_signal_connect(test_choices[3], "clicked", G_CALLBACK(cb_send_answer), (long*)3);
 
         node = gtk_builder_get_object(bd_main, "bt_intro_continue");
         g_signal_connect(node, "clicked", G_CALLBACK(cb_change_page), "main");

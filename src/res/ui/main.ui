@@ -587,7 +587,7 @@
       </packing>
     </child>
     <child>
-      <object class="GtkBox" id="lesson_result">
+      <object class="GtkBox" id="result_lesson">
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="margin-left">8</property>
@@ -672,7 +672,7 @@
         </child>
       </object>
       <packing>
-        <property name="name">lesson_result</property>
+        <property name="name">result_lesson</property>
         <property name="position">4</property>
       </packing>
     </child>

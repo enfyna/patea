@@ -4,8 +4,7 @@
 #include <glib.h>
 
 #define LESSON_COUNT 2
-#define TEST_COUNT 2
-#define MAX_TEST_QUESTIONS 10
+#define CHOICE_COUNT 4
 
 enum QUESTION_TYPE {
     QUESTION_TERMINAL,
@@ -19,6 +18,12 @@ enum LESSONS {
     LESSON_NOT_SELECTED,
 };
 
+enum LESSON_CATEGORIES {
+    CATEGORY_TERMINAL,
+    CATEGORY_PARDUS,
+    CATEGORY_LINUX,
+};
+
 typedef struct {
     enum LESSONS current;
 } LessonState;
@@ -26,21 +31,19 @@ typedef struct {
 typedef struct {
     enum QUESTION_TYPE type;
     char question[200];
-    char a[50];
-    char b[50];
-    char c[50];
-    char d[50];
+    char choice[4][50];
     int answer;
 } LessonQuestion;
 
 typedef struct {
-    LessonQuestion questions[MAX_TEST_QUESTIONS];
-    int total_questions;
-    int correct_answers;
-    int current_question;
     char* title;
+    int correct_answers;
+    size_t total_questions;
+    size_t current_question;
+    enum LESSON_CATEGORIES category;
+    LessonQuestion questions[];
 } Lesson;
 
 void lesson_init(void);
 Lesson* lesson_get_from_enum(enum LESSONS en);
-enum LESSONS lesson_get_from_page(const char* page_name);
+enum LESSONS lesson_get_from_name(const char* page_name);
