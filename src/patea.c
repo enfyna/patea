@@ -40,7 +40,7 @@ prepare_question(Lesson* ls)
     gdouble fraction = (gdouble)ls_state.correct_answers / ls->total_questions;
 
     if (question.type == QUESTION_TERMINAL) {
-        gtk_label_set_text(GTK_LABEL(title_test), ls->title);
+        gtk_label_set_text(GTK_LABEL(title_term), ls->title);
         gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pb_term), fraction);
 
         vte_terminal_feed(VTE_TERMINAL(term), CLEAR_TERMINAL_SCREEN);

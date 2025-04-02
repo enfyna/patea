@@ -217,7 +217,7 @@
             <property name="margin-right">12</property>
             <property name="margin-top">12</property>
             <property name="margin-bottom">12</property>
-            <property name="label" translatable="yes">Terminal Dosya Islemleri</property>
+            <property name="label" translatable="yes">Title</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -372,7 +372,7 @@
             <property name="margin-right">12</property>
             <property name="margin-top">12</property>
             <property name="margin-bottom">12</property>
-            <property name="label" translatable="yes">Pardus Nedir ?</property>
+            <property name="label" translatable="yes">Title</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -404,7 +404,7 @@
             <property name="margin-right">24</property>
             <property name="margin-top">24</property>
             <property name="margin-bottom">24</property>
-            <property name="label" translatable="yes">Nasilsin ?</property>
+            <property name="label" translatable="yes">Question</property>
           </object>
           <packing>
             <property name="expand">False</property>
