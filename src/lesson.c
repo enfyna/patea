@@ -1,131 +1,121 @@
+#include <assert.h>
+#include <stdlib.h>
 #include <string.h>
-#include <glib.h>
 
 #include "lesson.h"
 
-char* lesson_ids[LESSON_COUNT] = {
-    [TEST_1] = "test_1",
-    [TERMINAL_1] = "terminal_1",
-};
+LessonDB db_lesson = { 0 };
 
-Lesson* tests[LESSON_COUNT] = { 0 };
-
-void lesson_init(void)
+int cb_lesson_load(void* data, int argc, char** argv, char** col_name)
 {
-    Lesson* test_1 = calloc(1, sizeof(Lesson) + 3 * sizeof(LessonQuestion));
+    (void)data;
+    (void)argc;
 
-    test_1->title = "Pardus Nedir?";
-    test_1->category = CATEGORY_PARDUS;
-    test_1->total_questions = 3;
-    test_1->current_question = 0;
+    if (0 == strcmp(col_name[0], "category_id")) {
+        int category_id = atoi(argv[0]);
+        char* category_name = strdup(argv[1]);
 
-    strcpy(test_1->questions[0].question, "Pardus kim tarafindan gelistirilir ?");
-    strcpy(test_1->questions[0].choice[0], "A: kimse");
-    strcpy(test_1->questions[0].choice[1], "B: ben");
-    strcpy(test_1->questions[0].choice[2], "C: tubitak");
-    strcpy(test_1->questions[0].choice[3], "D: ankara");
-    test_1->questions[0].answer = 2;
-    test_1->questions[0].type = QUESTION_TEST;
+        if (db_lesson.categories_capacity < category_id) {
+            db_lesson.categories_capacity *= 2;
+            db_lesson.categories = realloc(db_lesson.categories, sizeof(char*) * db_lesson.categories_capacity);
+        }
 
-    strcpy(test_1->questions[1].question, "Pardus hangi linux tabanlidir ?");
-    strcpy(test_1->questions[1].choice[0], "A: arch");
-    strcpy(test_1->questions[1].choice[1], "B: ubuntu");
-    strcpy(test_1->questions[1].choice[2], "C: mint");
-    strcpy(test_1->questions[1].choice[3], "D: debian");
-    test_1->questions[1].answer = 3;
-    test_1->questions[1].type = QUESTION_TEST;
+        db_lesson.categories[category_id] = category_name;
+        db_lesson.categories_count++;
 
-    strcpy(test_1->questions[2].question, "Pardus hangi paket yoneticisini kullanir ?");
-    strcpy(test_1->questions[2].choice[0], "A: pacman");
-    strcpy(test_1->questions[2].choice[1], "B: apt");
-    strcpy(test_1->questions[2].choice[2], "C: dnf");
-    strcpy(test_1->questions[2].choice[3], "D: dpkg");
-    test_1->questions[2].answer = 1;
-    test_1->questions[2].type = QUESTION_TEST;
+    } else if (0 == strcmp(col_name[0], "lesson_id")) {
+        int lesson_id = atoi(argv[0]);
+        char* title = strdup(argv[2]);
+        int category_id = atoi(argv[1]);
+        int question_count = atoi(argv[4]);
 
-    tests[TEST_1] = test_1;
+        char* page_name = strdup(argv[3]);
 
-    Lesson* terminal_1 = calloc(1, sizeof(Lesson) + 7 * sizeof(LessonQuestion));
+        Lesson* new = malloc(sizeof(Lesson) + sizeof(LessonQuestion) * question_count);
+        new->title = title;
+        new->category = category_id;
+        new->total_questions = question_count;
+        new->page_name = page_name;
 
-    terminal_1->title = "Terminal Nedir?";
-    terminal_1->category = CATEGORY_TERMINAL;
-    terminal_1->total_questions = 7;
-    terminal_1->current_question = 0;
+        if (db_lesson.lesson_capacity < lesson_id) {
+            db_lesson.lesson_capacity *= 2;
+            db_lesson.lessons = realloc(db_lesson.lessons, sizeof(Lesson*) * db_lesson.lesson_capacity);
+        }
 
-    strcpy(terminal_1->questions[0].question, "Hangi komut ile klasor olusturulur ?");
-    strcpy(terminal_1->questions[0].choice[0], "A: makedirectory");
-    strcpy(terminal_1->questions[0].choice[1], "B: makefolder");
-    strcpy(terminal_1->questions[0].choice[2], "C: mkdir");
-    strcpy(terminal_1->questions[0].choice[3], "D: mkfdr");
-    terminal_1->questions[0].answer = 2;
-    terminal_1->questions[0].type = QUESTION_TEST;
+        db_lesson.lessons[lesson_id] = new;
+        db_lesson.lesson_count++;
 
-    strcpy(terminal_1->questions[1].question, "mkdir komutunu kullanarak patea adinda bir klasor olustur.\r\n(olusturulan klasorun yolu ~/patea olmali)\r\n");
-    strcpy(terminal_1->questions[1].choice[0], "test -d ~/patea");
-    strcpy(terminal_1->questions[1].choice[1], "");
-    strcpy(terminal_1->questions[1].choice[2], "");
-    strcpy(terminal_1->questions[1].choice[3], "");
-    terminal_1->questions[1].answer = 1;
-    terminal_1->questions[1].type = QUESTION_TERMINAL;
+    } else if (0 == strcmp(col_name[0], "question_id")) {
+        int question_id = atoi(argv[0]);
+        (void)question_id;
 
-    strcpy(terminal_1->questions[2].question, "Klasor icine girmek icin hangi komut kullanilir ?");
-    strcpy(terminal_1->questions[2].choice[0], "A: ps");
-    strcpy(terminal_1->questions[2].choice[1], "B: cd");
-    strcpy(terminal_1->questions[2].choice[2], "C: ls");
-    strcpy(terminal_1->questions[2].choice[3], "D: ed");
-    terminal_1->questions[2].answer = 1;
-    terminal_1->questions[2].type = QUESTION_TEST;
+        int lesson_id = atoi(argv[1]);
+        int question_pos = atoi(argv[2]);
+        int question_type = atoi(argv[3]);
+        char* question = argv[4];
+        char* choice1 = argv[5];
+        char* choice2 = argv[6];
+        char* choice3 = argv[7];
+        char* choice4 = argv[8];
+        int answer = atoi(argv[9]);
 
-    strcpy(terminal_1->questions[3].question, "Yeni bir dosya olusturmak icin hangi komut kullanilir ?");
-    strcpy(terminal_1->questions[3].choice[0], "A: pkill");
-    strcpy(terminal_1->questions[3].choice[1], "B: apt");
-    strcpy(terminal_1->questions[3].choice[2], "C: pacman");
-    strcpy(terminal_1->questions[3].choice[3], "D: touch");
-    terminal_1->questions[3].answer = 3;
-    terminal_1->questions[3].type = QUESTION_TEST;
+        Lesson* new = db_lesson.lessons[lesson_id];
+        assert(question_pos < (int)new->total_questions && "[LESSON] Question out of bounds.");
 
-    strcpy(terminal_1->questions[4].question, "1.cd komutunu kullanarak patea klasorune gir.\r\n2.touch komutunu kullanarak metin.txt adinda bir dosya olustur\r\n");
-    strcpy(terminal_1->questions[4].choice[0], "test -f ~/patea/metin.txt");
-    strcpy(terminal_1->questions[4].choice[1], "");
-    strcpy(terminal_1->questions[4].choice[2], "");
-    strcpy(terminal_1->questions[4].choice[3], "");
-    terminal_1->questions[4].answer = 1;
-    terminal_1->questions[4].type = QUESTION_TERMINAL;
+        new->questions[question_pos].answer = answer;
+        new->questions[question_pos].type = question_type;
 
-    strcpy(terminal_1->questions[5].question, "Dosya yada klasor silmek icin hangi komut kullanilir ?");
-    strcpy(terminal_1->questions[5].choice[0], "A: rm");
-    strcpy(terminal_1->questions[5].choice[1], "B: ed");
-    strcpy(terminal_1->questions[5].choice[2], "C: vi");
-    strcpy(terminal_1->questions[5].choice[3], "D: ex");
-    terminal_1->questions[5].answer = 0;
-    terminal_1->questions[5].type = QUESTION_TEST;
+        strcpy(new->questions[question_pos].question, question);
 
-    strcpy(terminal_1->questions[6].question, "rm komutunu kullanarak patea klasorunu sil.\r\n");
-    strcpy(terminal_1->questions[6].choice[0], "! test -d ~/patea");
-    strcpy(terminal_1->questions[6].choice[1], "");
-    strcpy(terminal_1->questions[6].choice[2], "");
-    strcpy(terminal_1->questions[6].choice[3], "");
-    terminal_1->questions[6].answer = 1;
-    terminal_1->questions[6].type = QUESTION_TERMINAL;
+        strcpy(new->questions[question_pos].choice[0], choice1);
+        strcpy(new->questions[question_pos].choice[1], choice2);
+        strcpy(new->questions[question_pos].choice[2], choice3);
+        strcpy(new->questions[question_pos].choice[3], choice4);
+    }
 
-    tests[TERMINAL_1] = terminal_1;
+    return 0;
 }
 
-enum LESSONS lesson_get_from_name(const char* name)
+void lesson_init(sqlite3* db)
+{
+    db_lesson.categories_capacity = 10;
+    db_lesson.categories = malloc(sizeof(char*) * db_lesson.categories_capacity);
+    db_lesson.lesson_capacity = 10;
+    db_lesson.lessons = malloc(sizeof(Lesson*) * db_lesson.lesson_capacity);
+
+    const char* query = "SELECT * FROM LESSON_CATEGORIES;"
+                        "SELECT * FROM LESSONS;"
+                        "SELECT * FROM LESSON_QUESTIONS;";
+    char* err;
+    int rc = sqlite3_exec(db, query, cb_lesson_load, NULL, &err);
+    if (rc == SQLITE_OK) {
+        g_print("[DB] Lessons read successfully!\n");
+    } else {
+        g_error("[DB] Error(%d): %s\n", rc, err);
+    }
+}
+
+Lesson* lesson_get_from_name(const char* name)
 {
     // removing "lesson_" prefix
     const char* lesson_name = name + 7;
 
-    for (int i = 0; i < LESSON_COUNT; i++) {
-        if (0 == strcmp(lesson_ids[i], lesson_name)) {
-            return i;
+    for (int i = 1; i <= db_lesson.lesson_count; i++) {
+        if (0 == strcmp(db_lesson.lessons[i]->page_name, lesson_name)) {
+            return db_lesson.lessons[i];
         }
     }
 
-    return LESSON_NOT_SELECTED;
+    return NULL;
 }
 
-Lesson* lesson_get_from_enum(enum LESSONS en)
+Lesson* lesson_get_from_id(int id)
 {
-    return tests[en];
+    assert(id < db_lesson.lesson_count && "[LESSON] Out of bounds.");
+    return db_lesson.lessons[id];
+}
+
+LessonDB* lesson_get_db(void)
+{
+    return &db_lesson;
 }

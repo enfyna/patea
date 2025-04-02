@@ -12,7 +12,9 @@
 #define WIDTH 1200
 #define HEIGHT 800
 
-LessonState ls_state = { .current = LESSON_NOT_SELECTED };
+sqlite3* db;
+
+LessonState ls_state = { .lesson = NULL };
 GObject* pt_stack;
 
 GObject* term;
@@ -33,21 +35,18 @@ GObject* pb_result;
 static void
 prepare_question(Lesson* ls)
 {
-    LessonQuestion question = ls->questions[ls->current_question];
+    LessonQuestion question = ls->questions[ls_state.question];
 
-    gdouble fraction = (gdouble)ls->correct_answers / ls->total_questions;
+    gdouble fraction = (gdouble)ls_state.correct_answers / ls->total_questions;
 
     if (question.type == QUESTION_TERMINAL) {
         gtk_label_set_text(GTK_LABEL(title_test), ls->title);
         gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pb_term), fraction);
 
-        vte_terminal_feed(VTE_TERMINAL(term), CLEAR_TERMINAL_SCREEN, 6);
+        vte_terminal_feed(VTE_TERMINAL(term), CLEAR_TERMINAL_SCREEN);
         vte_terminal_feed(VTE_TERMINAL(term), question.question, strlen(question.question));
-        vte_terminal_feed(VTE_TERMINAL(term),
-            "-------------------------------------------\r\n"
-            "Soruyu cozdukten sonra kontrol et butonuna bas.\r\n",
-            98);
-        vte_terminal_feed_child(VTE_TERMINAL(term), CLEAN_TERMINAL_LINE, 2);
+        vte_terminal_feed(VTE_TERMINAL(term), CHECK_BUTTON_NOTICE);
+        vte_terminal_feed_child(VTE_TERMINAL(term), CLEAN_TERMINAL_LINE);
 
         gtk_stack_set_visible_child_name(GTK_STACK(pt_stack), "question_terminal");
     } else if (question.type == QUESTION_TEST) {
@@ -76,23 +75,22 @@ change_page(const char* page_name)
         return;
     }
 
-    enum LESSONS selected = lesson_get_from_name(page_name);
-    if (selected == LESSON_NOT_SELECTED) {
+    Lesson* lesson = lesson_get_from_name(page_name);
+    if (lesson == NULL) {
         return; // should not happen
     }
 
-    Lesson* lesson = lesson_get_from_enum(selected);
-    if (lesson->current_question >= lesson->total_questions) {
+    if (ls_state.question >= lesson->total_questions) {
         return;
     }
 
-    if (selected == ls_state.current) {
+    if (lesson == ls_state.lesson) {
         g_print("[LESSON] Same as before.\n");
     } else {
         g_print("[LESSON] Selected: %s\n", lesson->title);
     }
 
-    ls_state.current = selected;
+    ls_state.lesson = lesson;
 
     prepare_question(lesson);
 }
@@ -110,9 +108,9 @@ cb_change_page(GtkWidget* widget, gpointer data)
 static void
 continue_test(long answer)
 {
-    Lesson* lesson = lesson_get_from_enum(ls_state.current);
+    Lesson* lesson = ls_state.lesson;
 
-    LessonQuestion current = lesson->questions[lesson->current_question];
+    LessonQuestion current = lesson->questions[ls_state.question];
 
     bool is_answer_correct = false;
     if (current.type == QUESTION_TEST) {
@@ -139,9 +137,9 @@ continue_test(long answer)
         g_print("[LESSON] Wrong Answer!\n");
     }
 
-    lesson->correct_answers += is_answer_correct ? 1 : -1;
+    ls_state.correct_answers += is_answer_correct ? 1 : -1;
 
-    gdouble fraction = (gdouble)lesson->correct_answers / lesson->total_questions;
+    gdouble fraction = (gdouble)ls_state.correct_answers / lesson->total_questions;
 
     gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pb_term), fraction);
     gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pb_test), fraction);
@@ -150,17 +148,17 @@ continue_test(long answer)
         return;
     }
 
-    if (++lesson->current_question >= lesson->total_questions) {
+    if (++ls_state.question >= lesson->total_questions) {
         gtk_label_set_text(GTK_LABEL(title_result), lesson->title);
         gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pb_result), fraction);
 
         char text[1024] = { 0 };
         sprintf(text, "\n\n%d/%zu dogru cevapladin.\n\n",
-            lesson->correct_answers, lesson->total_questions);
+            ls_state.correct_answers, lesson->total_questions);
         gtk_label_set_text(GTK_LABEL(lb_result), text);
 
-        lesson->correct_answers = 0;
-        lesson->current_question = 0;
+        ls_state.correct_answers = 0;
+        ls_state.question = 0;
 
         change_page("result_lesson");
         return;
@@ -198,6 +196,7 @@ activate(GtkApplication* app, gpointer user_data)
 
     gtk_window_set_title(GTK_WINDOW(window), "Patea");
     gtk_window_set_default_size(GTK_WINDOW(window), WIDTH, HEIGHT);
+    gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
 
     GtkBuilder* bd_main;
 
@@ -207,9 +206,7 @@ activate(GtkApplication* app, gpointer user_data)
 
     bd_main = gtk_builder_new();
     if (gtk_builder_add_from_resource(bd_main, "/org/gtk/patea/ui/main.ui", &error) == 0) {
-        g_printerr("[ERROR] Couldnt load file: %s\n", error->message);
-        g_clear_error(&error);
-        g_application_quit(G_APPLICATION(app));
+        g_error("[BUILDER] Couldnt load file: %s\n", error->message);
     }
 
     {
@@ -245,12 +242,37 @@ activate(GtkApplication* app, gpointer user_data)
 
         node = gtk_builder_get_object(bd_main, "bt_result_return");
         g_signal_connect(node, "clicked", G_CALLBACK(cb_change_page), "main");
+    }
 
-        node = gtk_builder_get_object(bd_main, "bt_main_select_l1");
-        g_signal_connect(node, "clicked", G_CALLBACK(cb_change_page), "lesson_terminal_1");
+    {
+        LessonDB* db_lesson = lesson_get_db();
 
-        node = gtk_builder_get_object(bd_main, "bt_main_select_l2");
-        g_signal_connect(node, "clicked", G_CALLBACK(cb_change_page), "lesson_test_1");
+        GObject* bx_category = gtk_builder_get_object(bd_main, "bx_category");
+
+        for (int i = 0; i <= db_lesson->categories_count; i++) {
+            GtkWidget* box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 8);
+
+            GtkWidget* label = gtk_label_new(i > 0 ? db_lesson->categories[i] : "Kategorisiz");
+            gtk_box_pack_start(GTK_BOX(box), GTK_WIDGET(label), false, false, 8);
+
+            for (int j = 1; j <= db_lesson->lesson_count; j++) {
+                Lesson* lesson = db_lesson->lessons[j];
+                if ((int)lesson->category != i) {
+                    continue;
+                }
+
+                GtkWidget* button = gtk_button_new();
+
+                gtk_button_set_label(GTK_BUTTON(button), lesson->title);
+
+                gchar* page_name = g_strconcat("lesson_", lesson->page_name, NULL);
+                g_signal_connect(button, "clicked", G_CALLBACK(cb_change_page), page_name);
+
+                gtk_box_pack_start(GTK_BOX(box), GTK_WIDGET(button), false, true, 8);
+            }
+
+            gtk_box_pack_start(GTK_BOX(bx_category), GTK_WIDGET(box), true, true, 8);
+        }
     }
 
     {
@@ -282,12 +304,28 @@ activate(GtkApplication* app, gpointer user_data)
 
 int main(int argc, char** argv)
 {
-    lesson_init();
+    int rc = sqlite3_open_v2("patea.data", &db, SQLITE_OPEN_READONLY, NULL);
+    if (rc == SQLITE_OK) {
+        g_print("[DB] Opened database successfully.\n");
+
+        lesson_init(db);
+    } else {
+        g_print("[DB] Can't open database: %s\n", sqlite3_errmsg(db));
+    }
 
     GtkApplication* app;
 
     app = gtk_application_new("org.gtk.patea", G_APPLICATION_DEFAULT_FLAGS);
     g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
 
-    return g_application_run(G_APPLICATION(app), argc, argv);
+    int status = g_application_run(G_APPLICATION(app), argc, argv);
+
+    rc = sqlite3_close(db);
+    if (rc == SQLITE_OK) {
+        g_print("[DB] Closed database successfully.\n");
+    } else {
+        g_error("[DB] Can't close database: %s\n", sqlite3_errmsg(db));
+    }
+
+    return status;
 }

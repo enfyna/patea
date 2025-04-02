@@ -86,9 +86,10 @@ void cb_term_eof(GtkWidget* term, gpointer data)
 void child_ready(VteTerminal* terminal, GPid pid, GError* error, gpointer user_data)
 {
     (void) user_data;
+
     g_print("[TERMINAL] Spawn: ");
     if (error)
-        g_print("Error = %d, Domain: %d, Message: %s ", error->code, error->domain, error->message);
+        g_print("Error = %d, Domain: %d, Message: %s, ", error->code, error->domain, error->message);
     g_print("PID = %d\n", pid);
 
     if (!terminal)

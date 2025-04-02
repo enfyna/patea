@@ -1,49 +1,48 @@
 #pragma once
 
-#include <stdbool.h>
 #include <glib.h>
+#include <gtk/gtk.h>
+#include <sqlite3.h>
+#include <stdbool.h>
 
-#define LESSON_COUNT 2
 #define CHOICE_COUNT 4
 
 enum QUESTION_TYPE {
-    QUESTION_TERMINAL,
     QUESTION_TEST,
+    QUESTION_TERMINAL,
 };
-
-enum LESSONS {
-    TERMINAL_1,
-    TEST_1,
-
-    LESSON_NOT_SELECTED,
-};
-
-enum LESSON_CATEGORIES {
-    CATEGORY_TERMINAL,
-    CATEGORY_PARDUS,
-    CATEGORY_LINUX,
-};
-
-typedef struct {
-    enum LESSONS current;
-} LessonState;
 
 typedef struct {
     enum QUESTION_TYPE type;
     char question[200];
-    char choice[4][50];
+    char choice[CHOICE_COUNT][50];
     int answer;
 } LessonQuestion;
 
 typedef struct {
     char* title;
-    int correct_answers;
+    char* page_name;
     size_t total_questions;
-    size_t current_question;
-    enum LESSON_CATEGORIES category;
+    int category;
     LessonQuestion questions[];
 } Lesson;
 
-void lesson_init(void);
-Lesson* lesson_get_from_enum(enum LESSONS en);
-enum LESSONS lesson_get_from_name(const char* page_name);
+typedef struct {
+    Lesson** lessons;
+    int lesson_count;
+    int lesson_capacity;
+    char** categories;
+    int categories_count;
+    int categories_capacity;
+} LessonDB;
+
+typedef struct {
+    Lesson* lesson;
+    int correct_answers;
+    size_t question;
+} LessonState;
+
+void lesson_init(sqlite3* db);
+Lesson* lesson_get_from_id(int id);
+Lesson* lesson_get_from_name(const char* page_name);
+LessonDB* lesson_get_db(void);
