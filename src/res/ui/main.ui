@@ -261,7 +261,6 @@
                 <property name="vscroll-policy">natural</property>
                 <property name="encoding">UTF-8</property>
                 <property name="font-scale">0.75</property>
-                <property name="scroll-on-insert">True</property>
                 <property name="scroll-on-keystroke">True</property>
                 <property name="scroll-on-output">False</property>
               </object>
