@@ -1,8 +1,12 @@
 #include <assert.h>
+#include <glib.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "lesson.h"
+#include "sql.h"
 
 LessonDB db_lesson = { 0 };
 
@@ -11,40 +15,38 @@ int cb_lesson_load(void* data, int argc, char** argv, char** col_name)
     (void)data;
     (void)argc;
 
-    if (0 == strcmp(col_name[0], "category_id")) {
+    if (0 == strcmp(col_name[0], "user_id")) {
+        int user_id = atoi(argv[0]);
+        char* user_name = strdup(argv[1]);
+
+        User* new = malloc(sizeof(User));
+        new->id = user_id;
+        new->name = user_name;
+
+        da_push_to_id(db_lesson.users, User*, new, user_id);
+    } else if (0 == strcmp(col_name[0], "category_id")) {
         int category_id = atoi(argv[0]);
         char* category_name = strdup(argv[1]);
 
-        if (db_lesson.categories_capacity < category_id) {
-            db_lesson.categories_capacity *= 2;
-            db_lesson.categories = realloc(db_lesson.categories, sizeof(char*) * db_lesson.categories_capacity);
-        }
-
-        db_lesson.categories[category_id] = category_name;
-        db_lesson.categories_count++;
-
+        da_push_to_id(db_lesson.categories, char*, category_name, category_id);
     } else if (0 == strcmp(col_name[0], "lesson_id")) {
         int lesson_id = atoi(argv[0]);
         char* title = strdup(argv[2]);
-        int category_id = atoi(argv[1]);
+        int category_id = argv[1] == NULL ? 0 : atoi(argv[1]);
         int question_count = atoi(argv[4]);
 
         char* page_name = strdup(argv[3]);
 
         Lesson* new = malloc(sizeof(Lesson) + sizeof(LessonQuestion) * question_count);
+        new->id = lesson_id;
         new->title = title;
-        new->category = category_id;
-        new->total_questions = question_count;
+        new->category_id = category_id;
+        new->question_count = question_count;
         new->page_name = page_name;
+        new->bt = NULL;
+        new->bt_text = NULL;
 
-        if (db_lesson.lesson_capacity < lesson_id) {
-            db_lesson.lesson_capacity *= 2;
-            db_lesson.lessons = realloc(db_lesson.lessons, sizeof(Lesson*) * db_lesson.lesson_capacity);
-        }
-
-        db_lesson.lessons[lesson_id] = new;
-        db_lesson.lesson_count++;
-
+        da_push_to_id(db_lesson.lessons, Lesson*, new, lesson_id);
     } else if (0 == strcmp(col_name[0], "question_id")) {
         int question_id = atoi(argv[0]);
         (void)question_id;
@@ -59,8 +61,8 @@ int cb_lesson_load(void* data, int argc, char** argv, char** col_name)
         char* choice4 = argv[8];
         int answer = atoi(argv[9]);
 
-        Lesson* new = db_lesson.lessons[lesson_id];
-        assert(question_pos < (int)new->total_questions && "[LESSON] Question out of bounds.");
+        Lesson* new = db_lesson.lessons.items[lesson_id];
+        assert(question_pos < (int)new->question_count && "[LESSON] Question out of bounds.");
 
         new->questions[question_pos].answer = answer;
         new->questions[question_pos].type = question_type;
@@ -78,41 +80,32 @@ int cb_lesson_load(void* data, int argc, char** argv, char** col_name)
 
 void lesson_init(sqlite3* db)
 {
-    db_lesson.categories_capacity = 10;
-    db_lesson.categories = malloc(sizeof(char*) * db_lesson.categories_capacity);
-    db_lesson.lesson_capacity = 10;
-    db_lesson.lessons = malloc(sizeof(Lesson*) * db_lesson.lesson_capacity);
+    da_init(User*, db_lesson.users);
+    da_init(Lesson*, db_lesson.lessons);
+    da_init(char*, db_lesson.categories);
 
-    const char* query = "SELECT * FROM LESSON_CATEGORIES;"
-                        "SELECT * FROM LESSONS;"
-                        "SELECT * FROM LESSON_QUESTIONS;";
-    char* err;
-    int rc = sqlite3_exec(db, query, cb_lesson_load, NULL, &err);
-    if (rc == SQLITE_OK) {
-        g_print("[DB] Lessons read successfully!\n");
-    } else {
-        g_error("[DB] Error(%d): %s\n", rc, err);
-    }
+    sql_exec(cb_lesson_load, SQL_GET_LESSONS, NULL);
 }
 
 Lesson* lesson_get_from_name(const char* name)
 {
     // removing "lesson_" prefix
-    const char* lesson_name = name + 7;
+    const char* lesson_name = name + LESSON_PAGE_PREFIX_LEN;
 
-    for (int i = 1; i <= db_lesson.lesson_count; i++) {
-        if (0 == strcmp(db_lesson.lessons[i]->page_name, lesson_name)) {
-            return db_lesson.lessons[i];
+    da_foreach(lesson, Lesson*, db_lesson.lessons)
+    {
+        if (0 == strcmp(lesson->page_name, lesson_name)) {
+            return lesson;
         }
     }
 
     return NULL;
 }
 
-Lesson* lesson_get_from_id(int id)
+Lesson* lesson_get_from_id(size_t id)
 {
-    assert(id < db_lesson.lesson_count && "[LESSON] Out of bounds.");
-    return db_lesson.lessons[id];
+    assert(id > 0 && id <= db_lesson.lessons.count && "[LESSON] Out of bounds.");
+    return db_lesson.lessons.items[id];
 }
 
 LessonDB* lesson_get_db(void)

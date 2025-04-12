@@ -1,3 +1,8 @@
+create table USERS (
+	user_id INTEGER PRIMARY KEY,
+	name varchar(50)
+);
+
 create table LESSON_CATEGORIES (
 	category_id INTEGER PRIMARY KEY,
 	name varchar(200)
@@ -19,13 +24,27 @@ create table LESSON_QUESTIONS (
 
 create table LESSONS (
 	lesson_id INTEGER PRIMARY KEY,
-	category_id int,
+	category_id int NOT NULL DEFAULT 1,
 	title varchar(200),
 	page_name varchar(50),
 	question_count int,
 	FOREIGN KEY (category_id) REFERENCES LESSON_CATEGORIES(category_id)
 );
 
+create table LESSON_RESULTS (
+	result_id INTEGER PRIMARY KEY,
+	correct_count int,
+	user_id int,
+	lesson_id int,
+	UNIQUE(user_id, lesson_id),
+	FOREIGN KEY (user_id) REFERENCES USERS(user_id),
+	FOREIGN KEY (lesson_id) REFERENCES LESSONS(lesson_id)
+);
+
+insert into USERS values (NULL, 'Kullanici 1');
+insert into USERS values (NULL, 'Kullanici 2');
+
+insert into LESSON_CATEGORIES values (NULL, 'Kategorisiz');
 insert into LESSON_CATEGORIES values (NULL, 'Bilgisayarlar');
 insert into LESSON_CATEGORIES values (NULL, 'Linux');
 insert into LESSON_CATEGORIES values (NULL, 'Pardus');

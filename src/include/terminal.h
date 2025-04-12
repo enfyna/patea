@@ -3,12 +3,8 @@
 #include <gtk/gtk.h>
 #include <vte-2.91/vte/vte.h>
 
-#define CLEAR_TERMINAL_SCREEN "\033[2J\r\n", 6
-#define CLEAN_TERMINAL_LINE "\x15\n", 2
-#define CHECK_BUTTON_NOTICE                                \
-    "-----------------------------------------------\r\n"  \
-    "Soruyu cozdukten sonra kontrol et butonuna bas.\r\n", \
-        102
+#define TERM_CLEAR_SCREEN "\033[2J\r\n", 6
+#define TERM_CLEAN_LINE "\x15\n", 2
 
 #define TERM_FONT_SCALE_FACTOR (0.2)
 

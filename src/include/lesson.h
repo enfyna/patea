@@ -1,11 +1,16 @@
 #pragma once
 
+#include <assert.h>
 #include <glib.h>
 #include <gtk/gtk.h>
 #include <sqlite3.h>
 #include <stdbool.h>
 
+#include "da.h"
+
 #define CHOICE_COUNT 4
+#define LESSON_PAGE_PREFIX "lesson_"
+#define LESSON_PAGE_PREFIX_LEN 7
 
 enum QUESTION_TYPE {
     QUESTION_TEST,
@@ -20,20 +25,27 @@ typedef struct {
 } LessonQuestion;
 
 typedef struct {
+    GtkWidget* bt; // UI button
+    char* bt_text; // UI button text
+
+    int id;
     char* title;
     char* page_name;
-    size_t total_questions;
-    int category;
+    size_t question_count;
+    int category_id;
     LessonQuestion questions[];
 } Lesson;
 
 typedef struct {
-    Lesson** lessons;
-    int lesson_count;
-    int lesson_capacity;
-    char** categories;
-    int categories_count;
-    int categories_capacity;
+    int id;
+    char* name;
+} User;
+
+typedef struct {
+    int user_id;
+    da lessons;
+    da categories;
+    da users;
 } LessonDB;
 
 typedef struct {
@@ -43,6 +55,6 @@ typedef struct {
 } LessonState;
 
 void lesson_init(sqlite3* db);
-Lesson* lesson_get_from_id(int id);
+Lesson* lesson_get_from_id(size_t id);
 Lesson* lesson_get_from_name(const char* page_name);
 LessonDB* lesson_get_db(void);
