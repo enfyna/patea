@@ -51,13 +51,13 @@ insert into LESSON_CATEGORIES values (NULL, 'Pardus');
 insert into LESSON_CATEGORIES values (NULL, 'Terminal');
 insert into LESSON_CATEGORIES values (NULL, 'Tarih');
 
-insert into LESSONS values (NULL, 3, 'Pardus Nedir?', 'test_1', 3);
+insert into LESSONS values (NULL, 4, 'Pardus Nedir?', 'test_1', 3);
 
 insert into LESSON_QUESTIONS values (NULL, 1, 0, 0, 'Pardus kim tarafindan gelistirilir ?','A: kimse','B: ben','C: tubitak','D: ankara', 2);
 insert into LESSON_QUESTIONS values (NULL, 1, 1, 0, 'Pardus hangi linux tabanlidir ?','A: arch','B: ubuntu','C: mint','D: debian', 3);
 insert into LESSON_QUESTIONS values (NULL, 1, 2, 0, 'Pardus hangi paket yoneticisini kullanir ?','A: pacman','B: apt','C: dnf','D: dpkg', 1);
 
-insert into LESSONS values (NULL, 4, 'Terminal Nedir?', 'terminal_1', 7);
+insert into LESSONS values (NULL, 5, 'Terminal Nedir?', 'terminal_1', 7);
 
 insert into LESSON_QUESTIONS values (NULL, 2, 0, 0, 'Hangi komut ile klasor olusturulur ?','A: makedirectory','B: makefolder','C: mkdir','D: mkfdr', 2);
 insert into LESSON_QUESTIONS values (NULL, 2, 1, 1, 'mkdir komutunu kullanarak patea adinda bir klasor olustur.' || char(13) || char(10) || 'olusturulan klasorun yolu ~/patea olmali)' || char(13) || char(10),'test -d ~/patea','','','', 1);

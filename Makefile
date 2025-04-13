@@ -8,7 +8,7 @@ VTE_INC=`pkg-config -cflags -libs vte-2.91`
 SQL_INC=`pkg-config -cflags -libs sqlite3`
 
 HEADERS=build/gres.h $(wildcard src/include/*.h)
-SOURCES=$(wildcard src/*.c) build/gres.c
+SOURCES=build/gres.c $(wildcard src/*.c) 
 
 build/patea: $(SOURCES) $(HEADERS)
 	$(info SOURCES => $(SOURCES))

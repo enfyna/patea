@@ -34,6 +34,10 @@
   <object class="GtkStack" id="stack">
     <property name="visible">True</property>
     <property name="can-focus">False</property>
+    <property name="margin-left">4</property>
+    <property name="margin-right">4</property>
+    <property name="margin-top">4</property>
+    <property name="margin-bottom">4</property>
     <property name="hexpand">True</property>
     <property name="vexpand">True</property>
     <property name="transition-duration">100</property>
@@ -138,6 +142,8 @@
       <object class="GtkBox" id="login">
         <property name="visible">True</property>
         <property name="can-focus">False</property>
+        <property name="margin-left">12</property>
+        <property name="margin-right">12</property>
         <property name="margin-top">12</property>
         <property name="margin-bottom">12</property>
         <property name="orientation">vertical</property>
@@ -288,10 +294,10 @@
       <object class="GtkBox" id="question_terminal">
         <property name="visible">True</property>
         <property name="can-focus">False</property>
-        <property name="margin-left">8</property>
-        <property name="margin-right">8</property>
-        <property name="margin-top">8</property>
-        <property name="margin-bottom">8</property>
+        <property name="margin-left">12</property>
+        <property name="margin-right">12</property>
+        <property name="margin-top">12</property>
+        <property name="margin-bottom">12</property>
         <property name="hexpand">True</property>
         <property name="vexpand">True</property>
         <property name="orientation">vertical</property>
@@ -443,10 +449,10 @@
       <object class="GtkBox" id="question_test">
         <property name="visible">True</property>
         <property name="can-focus">False</property>
-        <property name="margin-left">8</property>
-        <property name="margin-right">8</property>
-        <property name="margin-top">8</property>
-        <property name="margin-bottom">8</property>
+        <property name="margin-left">12</property>
+        <property name="margin-right">12</property>
+        <property name="margin-top">12</property>
+        <property name="margin-bottom">12</property>
         <property name="hexpand">True</property>
         <property name="vexpand">True</property>
         <property name="orientation">vertical</property>
@@ -631,10 +637,10 @@
       <object class="GtkBox" id="result_lesson">
         <property name="visible">True</property>
         <property name="can-focus">False</property>
-        <property name="margin-left">8</property>
-        <property name="margin-right">8</property>
-        <property name="margin-top">8</property>
-        <property name="margin-bottom">8</property>
+        <property name="margin-left">12</property>
+        <property name="margin-right">12</property>
+        <property name="margin-top">12</property>
+        <property name="margin-bottom">12</property>
         <property name="hexpand">True</property>
         <property name="vexpand">True</property>
         <property name="orientation">vertical</property>
@@ -698,7 +704,7 @@
         </child>
         <child>
           <object class="GtkButton" id="bt_result_return">
-            <property name="label" translatable="yes">Ana Menuye Don</property>
+            <property name="label" translatable="yes">Ana Sayfaya Don</property>
             <property name="visible">True</property>
             <property name="can-focus">True</property>
             <property name="receives-default">True</property>
