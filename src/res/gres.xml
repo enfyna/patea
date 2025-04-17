@@ -2,5 +2,7 @@
 <gresources>
     <gresource prefix="/org/gtk/patea">
         <file preprocess="xml-stripblanks" compressed="true" alias="ui/main.ui">src/res/ui/main.ui</file>
+        <file compressed="true" alias="sound/hit-sound.mp3">src/res/sound/hit-sound.mp3</file>
+        <file compressed="true" alias="sound/miss-sound.mp3">src/res/sound/miss-sound.mp3</file>
     </gresource>
 </gresources>

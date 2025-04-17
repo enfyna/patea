@@ -13,6 +13,7 @@
 
 #include "func.h"
 #include "lesson.h"
+#include "sound.h"
 #include "terminal.h"
 
 #define TITLE "Patea"
@@ -44,6 +45,9 @@ GObject* lb_result;
 GObject* pb_test;
 GObject* pb_term;
 GObject* pb_result;
+
+GBytes* sound_hit;
+GBytes* sound_miss;
 
 static void
 prepare_question(Lesson* ls)
@@ -91,13 +95,9 @@ change_page(const char* page_name)
     }
 
     Lesson* lesson = lesson_get_from_name(page_name);
-    if (lesson == NULL) {
-        return; // should not happen
-    }
 
-    if (ls_state.question >= lesson->question_count) {
-        return;
-    }
+    assert(lesson != NULL);
+    assert(ls_state.question < lesson->question_count);
 
     if (lesson == ls_state.lesson) {
         g_print("[LESSON] Same as before.\n");
@@ -204,9 +204,10 @@ continue_test(long answer)
     }
 
     if (is_answer_correct) {
+        sound_play(sound_hit);
         g_print("[LESSON] Correct Answer!\n");
     } else {
-        // TODO: play sound ?
+        sound_play(sound_miss);
         g_print("[LESSON] Wrong Answer!\n");
     }
 
@@ -287,7 +288,17 @@ activate(GtkApplication* app, gpointer user_data)
     GError* error = NULL;
 
     if (gtk_builder_add_from_resource(bd_main, "/org/gtk/patea/ui/main.ui", &error) == 0) {
-        g_error("[BUILDER] Couldnt load file: %s\n", error->message);
+        g_error("Couldnt load file: %s, %d, %u\n", error->message, error->code, error->domain);
+    }
+
+    sound_hit = g_resources_lookup_data("/org/gtk/patea/sound/hit-sound.mp3", G_RESOURCE_LOOKUP_FLAGS_NONE, &error);
+    if (sound_hit == NULL) {
+        g_error("Couldnt load file: %s, %d, %u\n", error->message, error->code, error->domain);
+    }
+
+    sound_miss = g_resources_lookup_data("/org/gtk/patea/sound/miss-sound.mp3", G_RESOURCE_LOOKUP_FLAGS_NONE, &error);
+    if (sound_miss == NULL) {
+        g_error("Couldnt load file: %s, %d, %u\n", error->message, error->code, error->domain);
     }
 
     {
@@ -414,6 +425,8 @@ int main(int argc, char** argv)
         g_print("[DB] Can't open database: %s\n", sqlite3_errmsg(db));
     }
 
+    sound_init();
+
     GtkApplication* app;
 
     app = gtk_application_new("org.gtk.patea", G_APPLICATION_DEFAULT_FLAGS);
@@ -427,6 +440,8 @@ int main(int argc, char** argv)
     } else {
         g_error("[DB] Can't close database: %s\n", sqlite3_errmsg(db));
     }
+
+    sound_uninit();
 
     return status;
 }
