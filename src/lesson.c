@@ -99,7 +99,7 @@ Lesson* lesson_get_from_name(const char* name)
         }
     }
 
-    return NULL;
+    assert(false && "[LESSON] Unknown lesson_name.\n");
 }
 
 Lesson* lesson_get_from_id(size_t id)

@@ -22,4 +22,3 @@ void cb_increase_term_font(GtkWidget* widget, gpointer data);
 void cb_decrease_term_font(GtkWidget* widget, gpointer data);
 void cb_term_input(GtkWidget* widget, gpointer data);
 void cb_term_eof(GtkWidget* widget, gpointer data);
-void child_ready(VteTerminal* terminal, GPid pid, GError* error, gpointer user_data);

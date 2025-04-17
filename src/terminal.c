@@ -3,6 +3,20 @@
 
 #include "terminal.h"
 
+static void cb_child_ready(VteTerminal* terminal, GPid pid, GError* error, gpointer user_data)
+{
+    (void)user_data;
+
+    g_print("[TERMINAL] Spawn: ");
+    if (error)
+        g_print("Error = %d, Domain: %d, Message: %s, ", error->code, error->domain, error->message);
+    g_print("PID = %d\n", pid);
+
+    if (!terminal)
+        return;
+
+    assert(pid >= 0);
+}
 void term_spawn(GtkWidget* term)
 {
     gchar** envp = g_get_environ();
@@ -23,7 +37,7 @@ void term_spawn(GtkWidget* term)
         NULL, /* child pid */
         -1, /* timeout */
         NULL, /* cancellable */
-        child_ready, /* callback */
+        cb_child_ready, /* callback */
         NULL); /* user_data */
 
     vte_terminal_set_colors(VTE_TERMINAL(term),
@@ -81,19 +95,4 @@ void cb_term_eof(GtkWidget* term, gpointer data)
     g_print("[TERMINAL] EOF: Spawning again...\n");
 
     term_spawn(term);
-}
-
-void child_ready(VteTerminal* terminal, GPid pid, GError* error, gpointer user_data)
-{
-    (void) user_data;
-
-    g_print("[TERMINAL] Spawn: ");
-    if (error)
-        g_print("Error = %d, Domain: %d, Message: %s, ", error->code, error->domain, error->message);
-    g_print("PID = %d\n", pid);
-
-    if (!terminal)
-        return;
-
-    assert(pid >= 0);
 }

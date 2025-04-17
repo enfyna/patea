@@ -15,7 +15,7 @@ typedef struct {
         (arr).items = malloc(sizeof(type) * da_cap_init); \
     } while (0)
 
-#define da_push(arr, type, item, id) da_push_to_id(arr, type, item, (arr.count))
+#define da_push(arr, type, item, id) da_push_to_id(arr, type, item, (arr).count)
 #define da_push_to_id(arr, type, item, id)                                     \
     do {                                                                       \
         if ((arr).count >= (arr).capacity) {                                   \

@@ -12,16 +12,16 @@
     "ON CONFLICT(user_id, lesson_id) "                  \
     "DO UPDATE SET correct_count=excluded.correct_count;"
 
-#define sql_exec(func, fmt, ...)                            \
-    do {                                                    \
-        char buf[1024] = { 0 };                             \
-        snprintf(buf, 1024, (fmt), __VA_ARGS__);            \
-                                                            \
-        char* err;                                          \
-        int rc = sqlite3_exec(db, buf, (func), NULL, &err); \
-        if (rc == SQLITE_OK) {                              \
-            g_print("[DB] Successful: %s\n", buf);          \
-        } else {                                            \
-            g_error("[DB] Error(%d): %s\n", rc, err);       \
-        }                                                   \
+#define sql_exec(func, fmt, ...)                                        \
+    do {                                                                \
+        char buf[1024] = { 0 };                                         \
+        snprintf(buf, 1024, (fmt), __VA_ARGS__);                        \
+                                                                        \
+        char* err;                                                      \
+        int rc = sqlite3_exec(db, buf, (func), NULL, &err);             \
+        if (rc == SQLITE_OK) {                                          \
+            g_print("[\x1b[92mDB\x1b[0m] %s\n", buf);                   \
+        } else {                                                        \
+            g_error("[DB][\x1b[91mX\x1b[0m] Error(%d): %s\n", rc, err); \
+        }                                                               \
     } while (0)
