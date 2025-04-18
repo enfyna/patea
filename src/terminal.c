@@ -1,9 +1,11 @@
 #include <assert.h>
 #include <gtk/gtk.h>
 
+#include "func.h"
 #include "terminal.h"
 
-static void cb_child_ready(VteTerminal* terminal, GPid pid, GError* error, gpointer user_data)
+internal void
+cb_child_ready(VteTerminal* terminal, GPid pid, GError* error, gpointer user_data)
 {
     (void)user_data;
 
@@ -17,6 +19,7 @@ static void cb_child_ready(VteTerminal* terminal, GPid pid, GError* error, gpoin
 
     assert(pid >= 0);
 }
+
 void term_spawn(GtkWidget* term)
 {
     gchar** envp = g_get_environ();

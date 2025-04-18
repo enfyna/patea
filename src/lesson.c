@@ -5,10 +5,11 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "func.h"
 #include "lesson.h"
 #include "sql.h"
 
-LessonDB db_lesson = { 0 };
+global LessonDB db_lesson = { 0 };
 
 int cb_lesson_load(void* data, int argc, char** argv, char** col_name)
 {

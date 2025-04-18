@@ -25,31 +25,31 @@
 #define PAGE_LOGIN "login"
 #define PAGE_RESULT "result_lesson"
 
-sqlite3* db;
+global sqlite3* db;
 
-LessonState ls_state = { .lesson = NULL };
-GObject* pt_stack;
+global LessonState ls_state = { .lesson = NULL };
+global GObject* pt_stack;
 
-GObject* term;
+global GObject* term;
 
-GObject* title_term;
-GObject* title_test;
-GObject* title_main;
-GObject* title_result;
+global GObject* title_term;
+global GObject* title_test;
+global GObject* title_main;
+global GObject* title_result;
 
-GObject* test_question;
-GObject* test_choices[CHOICE_COUNT];
+global GObject* test_question;
+global GObject* test_choices[CHOICE_COUNT];
 
-GObject* lb_result;
+global GObject* lb_result;
 
-GObject* pb_test;
-GObject* pb_term;
-GObject* pb_result;
+global GObject* pb_test;
+global GObject* pb_term;
+global GObject* pb_result;
 
-GBytes* sound_hit;
-GBytes* sound_miss;
+global GBytes* sound_hit;
+global GBytes* sound_miss;
 
-static void
+internal void
 prepare_question(Lesson* ls)
 {
     LessonQuestion question = ls->questions[ls_state.question];
@@ -80,7 +80,7 @@ prepare_question(Lesson* ls)
     }
 }
 
-static void
+internal void
 change_page(const char* page_name)
 {
     assert(page_name != NULL);
@@ -131,7 +131,7 @@ int cb_lesson_result_get(void* data, int argc, char** argv, char** col_name)
     return 0;
 }
 
-static void
+internal void
 cb_login_user(GtkWidget* widget, gpointer data)
 {
     (void)widget;
@@ -168,7 +168,7 @@ cb_login_user(GtkWidget* widget, gpointer data)
     change_page(PAGE_MAIN);
 }
 
-static void
+internal void
 cb_change_page(GtkWidget* widget, gpointer data)
 {
     (void)widget;
@@ -178,7 +178,7 @@ cb_change_page(GtkWidget* widget, gpointer data)
     change_page(page);
 }
 
-static void
+internal void
 continue_test(long answer)
 {
     Lesson* lesson = ls_state.lesson;
@@ -251,7 +251,7 @@ continue_test(long answer)
     prepare_question(lesson);
 }
 
-static void
+internal void
 cb_send_answer(GtkWidget* widget, gpointer data)
 {
     long answer = (long)data;
@@ -261,7 +261,7 @@ cb_send_answer(GtkWidget* widget, gpointer data)
     continue_test(answer);
 }
 
-static void
+internal void
 cb_term_check_answer(GtkWidget* widget, gpointer data)
 {
     (void)data;
@@ -270,7 +270,7 @@ cb_term_check_answer(GtkWidget* widget, gpointer data)
     continue_test(0);
 }
 
-static void
+internal void
 activate(GtkApplication* app, gpointer user_data)
 {
     (void)user_data;
