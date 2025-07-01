@@ -2,6 +2,7 @@
 #include <gtk/gtk.h>
 
 #include "func.h"
+#include "glib.h"
 #include "terminal.h"
 
 internal void
@@ -22,14 +23,18 @@ cb_child_ready(VteTerminal* terminal, GPid pid, GError* error, gpointer user_dat
 
 void term_spawn(GtkWidget* term)
 {
-    gchar** envp = g_get_environ();
-    gchar** command = (gchar*[]) {
-        g_strdup("/bin/bash"),
-        g_strdup("-ci"),
-        g_strdup("PS1='[patea] > ' bash --noprofile --norc"),
+    char* sh = "/bin/bash";
+    char* arg = "-ci";
+    char* cmd
+        = "PS1='[patea] > ' "
+          "PROMPT_COMMAND='history 1 | cut -f 5- -d \" \" >> ~/.patea' "
+          "bash --noprofile --norc";
+    gchar* command[] = {
+        sh,
+        arg,
+        cmd,
         NULL
     };
-    g_strfreev(envp);
 
     vte_terminal_spawn_async(VTE_TERMINAL(term),
         VTE_PTY_DEFAULT,
@@ -89,7 +94,8 @@ void cb_decrease_term_font(GtkWidget* widget, gpointer data)
 void cb_term_input(GtkWidget* widget, gpointer data)
 {
     (void)widget;
-    g_print("[TERMINAL] Input: %d => %c\n", *(char*)data, *(char*)data);
+    (void)data;
+    // g_print("[TERMINAL] Input: %d => %c\n", *(char*)data, *(char*)data);
 }
 
 void cb_term_eof(GtkWidget* term, gpointer data)

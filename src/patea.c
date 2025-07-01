@@ -15,6 +15,8 @@
 #include "lesson.h"
 #include "sound.h"
 #include "terminal.h"
+#include "tutorial.h"
+#include "user.h"
 
 #define TITLE "Patea"
 
@@ -23,11 +25,11 @@
 
 #define PAGE_MAIN "main"
 #define PAGE_LOGIN "login"
+#define PAGE_TUTORIAL "tutorial"
 #define PAGE_RESULT "result_lesson"
 
-global sqlite3* db;
-
 global LessonState ls_state = { .lesson = NULL };
+global size_t tutorial_pos = 0;
 global GObject* pt_stack;
 
 global GObject* term;
@@ -41,6 +43,7 @@ global GObject* test_question;
 global GObject* test_choices[CHOICE_COUNT];
 
 global GObject* lb_result;
+global GObject* lb_tutorial;
 
 global GObject* pb_test;
 global GObject* pb_term;
@@ -48,6 +51,9 @@ global GObject* pb_result;
 
 global GBytes* sound_hit;
 global GBytes* sound_miss;
+
+internal void
+cb_tutorial_continue(GtkWidget* widget, gpointer data);
 
 internal void
 prepare_question(Lesson* ls)
@@ -89,6 +95,12 @@ change_page(const char* page_name)
 
     g_print("[PAGE] from: %s => to: %s\n", current, page_name);
 
+    if (starts_with(page_name, PAGE_TUTORIAL)) {
+        cb_tutorial_continue(NULL, (long*)1);
+        gtk_stack_set_visible_child_name(GTK_STACK(pt_stack), page_name);
+        return;
+    }
+
     if (!starts_with(page_name, LESSON_PAGE_PREFIX)) {
         gtk_stack_set_visible_child_name(GTK_STACK(pt_stack), page_name);
         return;
@@ -112,6 +124,26 @@ change_page(const char* page_name)
     prepare_question(lesson);
 }
 
+internal void
+cb_tutorial_continue(GtkWidget* widget, gpointer data)
+{
+    (void)widget;
+
+    long step = (long)data;
+    tutorial_pos += step;
+    if (tutorial_pos < 1) {
+        change_page(PAGE_LOGIN);
+        return;
+    }
+
+    Tutorial* t = get_tutorial(tutorial_pos);
+    if (t == NULL) {
+        tutorial_set_user_completed();
+        change_page(PAGE_MAIN);
+    } else {
+        gtk_label_set_text(GTK_LABEL(lb_tutorial), t->text);
+    }
+}
 int cb_lesson_result_get(void* data, int argc, char** argv, char** col_name)
 {
     (void)data;
@@ -138,13 +170,14 @@ cb_login_user(GtkWidget* widget, gpointer data)
 
     User* user = data;
     LessonDB* dbl = lesson_get_db();
-    dbl->user_id = user->id;
+    user_set_current(user->id);
+    tutorial_pos = 0;
 
     char buf[128] = { 0 };
     snprintf(buf, 128, TX_MAIN_TITLE, user->name);
     gtk_label_set_text(GTK_LABEL(title_main), buf);
 
-    g_print("[LESSON] Selected user: [%d] %s\n", dbl->user_id, user->name);
+    g_print("[LESSON] Selected user: [%d] %s\n", user->id, user->name);
 
     da_foreach(lesson, Lesson*, dbl->lessons)
     {
@@ -154,7 +187,7 @@ cb_login_user(GtkWidget* widget, gpointer data)
         lesson->bt_text = NULL;
     }
 
-    sql_exec(cb_lesson_result_get, SQL_GET_USER_RESULTS, dbl->user_id);
+    sql_exec(dbl->db, cb_lesson_result_get, SQL_GET_USER_RESULTS, user->id);
 
     da_foreach(lesson, Lesson*, dbl->lessons)
     {
@@ -165,7 +198,8 @@ cb_login_user(GtkWidget* widget, gpointer data)
         }
     }
 
-    change_page(PAGE_MAIN);
+    user->tutorial == false ? change_page(PAGE_TUTORIAL)
+                            : change_page(PAGE_MAIN);
 }
 
 internal void
@@ -228,8 +262,8 @@ continue_test(long answer)
 
         LessonDB* dbl = lesson_get_db();
 
-        sql_exec(NULL, SQL_INSERT_LESSON_RESULT,
-            ls_state.correct_answers, dbl->user_id, lesson->id);
+        sql_exec(dbl->db, NULL, SQL_INSERT_LESSON_RESULT,
+            ls_state.correct_answers, (int)user_get_current(), lesson->id);
 
         assert(lesson->bt_text != NULL && "[ERROR] lesson->bt_text should always be populated beforehand.\n");
         free(lesson->bt_text);
@@ -285,20 +319,20 @@ activate(GtkApplication* app, gpointer user_data)
 
     GtkBuilder* bd_main = gtk_builder_new();
 
-    GError* error = NULL;
+    GError* err = NULL;
 
-    if (gtk_builder_add_from_resource(bd_main, "/org/gtk/patea/ui/main.ui", &error) == 0) {
-        g_error("Couldnt load file: %s, %d, %u\n", error->message, error->code, error->domain);
+    if (gtk_builder_add_from_resource(bd_main, "/org/gtk/patea/ui/main.ui", &err) == 0) {
+        g_error("Couldnt load file: %s, %d, %u\n", err->message, err->code, err->domain);
     }
 
-    sound_hit = g_resources_lookup_data("/org/gtk/patea/sound/hit-sound.mp3", G_RESOURCE_LOOKUP_FLAGS_NONE, &error);
+    sound_hit = g_resources_lookup_data("/org/gtk/patea/sound/hit-sound.mp3", G_RESOURCE_LOOKUP_FLAGS_NONE, &err);
     if (sound_hit == NULL) {
-        g_error("Couldnt load file: %s, %d, %u\n", error->message, error->code, error->domain);
+        g_error("Couldnt load file: %s, %d, %u\n", err->message, err->code, err->domain);
     }
 
-    sound_miss = g_resources_lookup_data("/org/gtk/patea/sound/miss-sound.mp3", G_RESOURCE_LOOKUP_FLAGS_NONE, &error);
+    sound_miss = g_resources_lookup_data("/org/gtk/patea/sound/miss-sound.mp3", G_RESOURCE_LOOKUP_FLAGS_NONE, &err);
     if (sound_miss == NULL) {
-        g_error("Couldnt load file: %s, %d, %u\n", error->message, error->code, error->domain);
+        g_error("Couldnt load file: %s, %d, %u\n", err->message, err->code, err->domain);
     }
 
     {
@@ -308,6 +342,7 @@ activate(GtkApplication* app, gpointer user_data)
         title_result = gtk_builder_get_object(bd_main, "lb_result_title");
         test_question = gtk_builder_get_object(bd_main, "lb_test_question");
         lb_result = gtk_builder_get_object(bd_main, "lb_result");
+        lb_tutorial = gtk_builder_get_object(bd_main, "lb_tutorial");
         pb_test = gtk_builder_get_object(bd_main, "pb_test");
         pb_term = gtk_builder_get_object(bd_main, "pb_term");
         pb_result = gtk_builder_get_object(bd_main, "pb_result");
@@ -329,6 +364,12 @@ activate(GtkApplication* app, gpointer user_data)
     {
         node = gtk_builder_get_object(bd_main, "bt_intro_continue");
         g_signal_connect(node, "clicked", G_CALLBACK(cb_change_page), PAGE_LOGIN);
+
+        node = gtk_builder_get_object(bd_main, "bt_tutorial_continue");
+        g_signal_connect(node, "clicked", G_CALLBACK(cb_tutorial_continue), (long*)1);
+
+        node = gtk_builder_get_object(bd_main, "bt_tutorial_return");
+        g_signal_connect(node, "clicked", G_CALLBACK(cb_tutorial_continue), (long*)-1);
 
         node = gtk_builder_get_object(bd_main, "bt_logoff");
         g_signal_connect(node, "clicked", G_CALLBACK(cb_change_page), PAGE_LOGIN);
@@ -416,11 +457,14 @@ activate(GtkApplication* app, gpointer user_data)
 
 int main(int argc, char** argv)
 {
+    sqlite3* db = NULL;
+
     int rc = sqlite3_open_v2("patea.data", &db, SQLITE_OPEN_READWRITE, NULL);
     if (rc == SQLITE_OK) {
         g_print("[DB] Opened database successfully.\n");
 
         lesson_init(db);
+        tutorial_init(db);
     } else {
         g_print("[DB] Can't open database: %s\n", sqlite3_errmsg(db));
     }

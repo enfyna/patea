@@ -1,5 +1,6 @@
 create table USERS (
 	user_id INTEGER PRIMARY KEY,
+        tutorial boolean DEFAULT false,
 	name varchar(50)
 );
 
@@ -41,8 +42,14 @@ create table LESSON_RESULTS (
 	FOREIGN KEY (lesson_id) REFERENCES LESSONS(lesson_id)
 );
 
-insert into USERS values (NULL, 'Kullanici 1');
-insert into USERS values (NULL, 'Kullanici 2');
+create table TUTORIAL (
+	id INTEGER PRIMARY KEY,
+	text varchar(200),
+	image varchar(200)
+);
+
+insert into USERS (user_id, name) values (NULL, 'Kullanici 1');
+insert into USERS (user_id, name) values (NULL, 'Kullanici 2');
 
 insert into LESSON_CATEGORIES values (NULL, 'Kategorisiz');
 insert into LESSON_CATEGORIES values (NULL, 'Bilgisayarlar');
@@ -66,4 +73,8 @@ insert into LESSON_QUESTIONS values (NULL, 2, 3, 0, 'Yeni bir dosya olusturmak i
 insert into LESSON_QUESTIONS values (NULL, 2, 4, 1, '1.cd komutunu kullanarak patea klasorune gir.' || char(13) || char(10) || '2.touch komutunu kullanarak metin.txt adinda bir dosya olustur' || char(13) || char(10),'test -f ~/patea/metin.txt','','','', 1);
 insert into LESSON_QUESTIONS values (NULL, 2, 5, 0, 'Dosya yada klasor silmek icin hangi komut kullanilir ?','A: rm','B: ed','C: vi','D: ex', 0);
 insert into LESSON_QUESTIONS values (NULL, 2, 6, 1, 'rm komutunu kullanarak patea klasorunu sil.' || char(13) || char(10),'! test -d ~/patea','','','', 1);
+
+insert into TUTORIAL values (NULL,'Pateaya Hosgeldin!\nBurada pardus hakkinda yeni bilgiler edineceksin!','');
+insert into TUTORIAL values (NULL,'Pateaya giris yaptiginda karsina farkli farkli bilgiler edinebilecegin testler cikacak.','');
+insert into TUTORIAL values (NULL,'Testlerde 2 tip soru var. 1.si coktan secmeli, 2.si ise terminalde komutlar calistirarak uygulamali sorular olacak!','');
 

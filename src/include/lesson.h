@@ -5,6 +5,7 @@
 #include <gtk/gtk.h>
 #include <sqlite3.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 #include "da.h"
 
@@ -38,11 +39,12 @@ typedef struct {
 
 typedef struct {
     int id;
+    bool tutorial;
     char* name;
 } User;
 
 typedef struct {
-    int user_id;
+    sqlite3* db;
     da lessons;
     da categories;
     da users;

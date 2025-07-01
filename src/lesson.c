@@ -16,27 +16,34 @@ int cb_lesson_load(void* data, int argc, char** argv, char** col_name)
     (void)data;
     (void)argc;
 
+    int used_arg_count = 0;
+
     if (0 == strcmp(col_name[0], "user_id")) {
-        int user_id = atoi(argv[0]);
-        char* user_name = strdup(argv[1]);
+        int user_id = atoi(argv[used_arg_count++]);
+        bool user_tutorial = atoi(argv[used_arg_count++]);
+        char* user_name = strdup(argv[used_arg_count++]);
+        assert(used_arg_count == argc && "SQL Table Changed!");
 
         User* new = malloc(sizeof(User));
         new->id = user_id;
         new->name = user_name;
+        new->tutorial = user_tutorial;
 
         da_push_to_id(db_lesson.users, User*, new, user_id);
     } else if (0 == strcmp(col_name[0], "category_id")) {
-        int category_id = atoi(argv[0]);
-        char* category_name = strdup(argv[1]);
+        int category_id = atoi(argv[used_arg_count++]);
+        char* category_name = strdup(argv[used_arg_count++]);
+        assert(used_arg_count == argc && "SQL Table Changed!");
 
         da_push_to_id(db_lesson.categories, char*, category_name, category_id);
     } else if (0 == strcmp(col_name[0], "lesson_id")) {
-        int lesson_id = atoi(argv[0]);
-        char* title = strdup(argv[2]);
-        int category_id = argv[1] == NULL ? 0 : atoi(argv[1]);
-        int question_count = atoi(argv[4]);
-
-        char* page_name = strdup(argv[3]);
+        int lesson_id = atoi(argv[used_arg_count++]);
+        int category_id = argv[used_arg_count] == NULL ? 0 : atoi(argv[used_arg_count]);
+        used_arg_count++;
+        char* title = strdup(argv[used_arg_count++]);
+        char* page_name = strdup(argv[used_arg_count++]);
+        int question_count = atoi(argv[used_arg_count++]);
+        assert(used_arg_count == argc && "SQL Table Changed!");
 
         Lesson* new = malloc(sizeof(Lesson) + sizeof(LessonQuestion) * question_count);
         new->id = lesson_id;
@@ -49,18 +56,19 @@ int cb_lesson_load(void* data, int argc, char** argv, char** col_name)
 
         da_push_to_id(db_lesson.lessons, Lesson*, new, lesson_id);
     } else if (0 == strcmp(col_name[0], "question_id")) {
-        int question_id = atoi(argv[0]);
+        int question_id = atoi(argv[used_arg_count++]);
         (void)question_id;
 
-        int lesson_id = atoi(argv[1]);
-        int question_pos = atoi(argv[2]);
-        int question_type = atoi(argv[3]);
-        char* question = argv[4];
-        char* choice1 = argv[5];
-        char* choice2 = argv[6];
-        char* choice3 = argv[7];
-        char* choice4 = argv[8];
-        int answer = atoi(argv[9]);
+        int lesson_id = atoi(argv[used_arg_count++]);
+        int question_pos = atoi(argv[used_arg_count++]);
+        int question_type = atoi(argv[used_arg_count++]);
+        char* question = argv[used_arg_count++];
+        char* choice1 = argv[used_arg_count++];
+        char* choice2 = argv[used_arg_count++];
+        char* choice3 = argv[used_arg_count++];
+        char* choice4 = argv[used_arg_count++];
+        int answer = atoi(argv[used_arg_count++]);
+        assert(used_arg_count == argc && "SQL Table Changed!");
 
         Lesson* new = db_lesson.lessons.items[lesson_id];
         assert(question_pos < (int)new->question_count && "[LESSON] Question out of bounds.");
@@ -85,7 +93,9 @@ void lesson_init(sqlite3* db)
     da_init(Lesson*, db_lesson.lessons);
     da_init(char*, db_lesson.categories);
 
-    sql_exec(cb_lesson_load, SQL_GET_LESSONS, NULL);
+    db_lesson.db = db;
+
+    sql_exec(db_lesson.db, cb_lesson_load, SQL_GET_LESSONS, NULL);
 }
 
 Lesson* lesson_get_from_name(const char* name)

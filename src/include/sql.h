@@ -1,4 +1,6 @@
 #define SQL_GET_USER_RESULTS "SELECT * FROM LESSON_RESULTS WHERE user_id='%d';"
+#define SQL_GET_TUTORIAL "SELECT * FROM TUTORIAL;"
+#define SQL_UPDATE_USER_TUTORIAL_COMPLETE "UPDATE USERS SET tutorial = 1 WHERE user_id = %d;"
 #define SQL_GET_LESSONS                \
     "SELECT * FROM USERS;"             \
     "SELECT * FROM LESSON_CATEGORIES;" \
@@ -12,7 +14,7 @@
     "ON CONFLICT(user_id, lesson_id) "                  \
     "DO UPDATE SET correct_count=excluded.correct_count;"
 
-#define sql_exec(func, fmt, ...)                                        \
+#define sql_exec(db, func, fmt, ...)                                    \
     do {                                                                \
         char buf[1024] = { 0 };                                         \
         snprintf(buf, 1024, (fmt), __VA_ARGS__);                        \
