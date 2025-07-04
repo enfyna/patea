@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "gdk-pixbuf/gdk-pixbuf.h"
 #include "sql.h"
 #include "text.h"
 
@@ -45,12 +46,15 @@ global GObject* test_choices[CHOICE_COUNT];
 global GObject* lb_result;
 global GObject* lb_tutorial;
 
+global GObject* im_tutorial;
+
 global GObject* pb_test;
 global GObject* pb_term;
 global GObject* pb_result;
 
 global GBytes* sound_hit;
 global GBytes* sound_miss;
+global GBytes* image_logo;
 
 internal void
 cb_tutorial_continue(GtkWidget* widget, gpointer data);
@@ -138,10 +142,17 @@ cb_tutorial_continue(GtkWidget* widget, gpointer data)
 
     Tutorial* t = get_tutorial(tutorial_pos);
     if (t == NULL) {
-        tutorial_set_user_completed();
+        user_update("tutorial", "1");
         change_page(PAGE_MAIN);
     } else {
         gtk_label_set_text(GTK_LABEL(lb_tutorial), t->text);
+        if (strlen(t->image) > 0) {
+            GdkPixbuf* gp = gdk_pixbuf_new_from_resource_at_scale(t->image, 200, 200, FALSE, NULL);
+            gtk_image_set_from_pixbuf(GTK_IMAGE(im_tutorial), gp);
+        } else {
+            gtk_image_set_from_icon_name(
+                GTK_IMAGE(im_tutorial), "gtk-info", GTK_ICON_SIZE_DIALOG);
+        }
     }
 }
 int cb_lesson_result_get(void* data, int argc, char** argv, char** col_name)
@@ -168,7 +179,9 @@ cb_login_user(GtkWidget* widget, gpointer data)
 {
     (void)widget;
 
-    User* user = data;
+    long user_id = (long)data;
+    User* user = user_get_users().items[user_id];
+
     LessonDB* dbl = lesson_get_db();
     user_set_current(user->id);
     tutorial_pos = 0;
@@ -343,6 +356,7 @@ activate(GtkApplication* app, gpointer user_data)
         test_question = gtk_builder_get_object(bd_main, "lb_test_question");
         lb_result = gtk_builder_get_object(bd_main, "lb_result");
         lb_tutorial = gtk_builder_get_object(bd_main, "lb_tutorial");
+        im_tutorial = gtk_builder_get_object(bd_main, "im_tutorial");
         pb_test = gtk_builder_get_object(bd_main, "pb_test");
         pb_term = gtk_builder_get_object(bd_main, "pb_term");
         pb_result = gtk_builder_get_object(bd_main, "pb_result");
@@ -386,11 +400,12 @@ activate(GtkApplication* app, gpointer user_data)
 
     {
         LessonDB* dbl = lesson_get_db();
+        da users = user_get_users();
 
         GObject* bx_user = gtk_builder_get_object(bd_main, "bx_user");
         GObject* bx_category = gtk_builder_get_object(bd_main, "bx_category");
 
-        da_foreach(user, User*, dbl->users)
+        da_foreach(user, User*, users)
         {
             GtkWidget* button = gtk_button_new();
 
@@ -398,7 +413,7 @@ activate(GtkApplication* app, gpointer user_data)
             snprintf(buf, 256, "%s", user->name);
             gtk_button_set_label(GTK_BUTTON(button), buf);
 
-            g_signal_connect(button, "clicked", G_CALLBACK(cb_login_user), user);
+            g_signal_connect(button, "clicked", G_CALLBACK(cb_login_user), (long*)(long)user->id);
 
             gtk_box_pack_start(GTK_BOX(bx_user), GTK_WIDGET(button), false, true, 8);
         }
@@ -463,6 +478,7 @@ int main(int argc, char** argv)
     if (rc == SQLITE_OK) {
         g_print("[DB] Opened database successfully.\n");
 
+        user_init(db);
         lesson_init(db);
         tutorial_init(db);
     } else {

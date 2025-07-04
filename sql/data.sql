@@ -74,7 +74,8 @@ insert into LESSON_QUESTIONS values (NULL, 2, 4, 1, '1.cd komutunu kullanarak pa
 insert into LESSON_QUESTIONS values (NULL, 2, 5, 0, 'Dosya yada klasor silmek icin hangi komut kullanilir ?','A: rm','B: ed','C: vi','D: ex', 0);
 insert into LESSON_QUESTIONS values (NULL, 2, 6, 1, 'rm komutunu kullanarak patea klasorunu sil.' || char(13) || char(10),'! test -d ~/patea','','','', 1);
 
-insert into TUTORIAL values (NULL,'Pateaya Hosgeldin!\nBurada pardus hakkinda yeni bilgiler edineceksin!','');
-insert into TUTORIAL values (NULL,'Pateaya giris yaptiginda karsina farkli farkli bilgiler edinebilecegin testler cikacak.','');
-insert into TUTORIAL values (NULL,'Testlerde 2 tip soru var. 1.si coktan secmeli, 2.si ise terminalde komutlar calistirarak uygulamali sorular olacak!','');
+insert into TUTORIAL values (NULL,'Pateaya Hoşgeldin!' || char(13) || char(10) || 'Burada pardus ve bilgisayar dünyası hakkında yeni bilgiler edineceksin!','');
+insert into TUTORIAL values (NULL,'Pateaya giriş yaptığında karşına farklı farklı bilgiler edinebileceğin birbirinden güzel testler çıkacak.','');
+insert into TUTORIAL values (NULL,'Testlerde 2 tip soru var:' || char(13) || char(10) || '1. Çoktan seçmeli 4.şıklı sorular,' || char(13) || char(10) || '2. Terminalde komutlar çalıştıracağın uygulamalı sorular.','');
+insert into TUTORIAL values (NULL,'Başarılar!!!','');
 

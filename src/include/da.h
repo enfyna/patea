@@ -15,6 +15,15 @@ typedef struct {
         (arr).items = malloc(sizeof(type) * da_cap_init); \
     } while (0)
 
+#define da_free(arr)                             \
+    do {                                         \
+        for (size_t i = 0; i < (arr).count; i++) \
+            free((arr).items[i]);                \
+        (arr).count = 0;                         \
+        (arr).capacity = 0;                      \
+        free((arr).items);                       \
+    } while (0)
+
 #define da_push(arr, type, item, id) da_push_to_id(arr, type, item, (arr).count)
 #define da_push_to_id(arr, type, item, id)                                     \
     do {                                                                       \

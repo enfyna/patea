@@ -38,16 +38,9 @@ typedef struct {
 } Lesson;
 
 typedef struct {
-    int id;
-    bool tutorial;
-    char* name;
-} User;
-
-typedef struct {
     sqlite3* db;
     da lessons;
     da categories;
-    da users;
 } LessonDB;
 
 typedef struct {

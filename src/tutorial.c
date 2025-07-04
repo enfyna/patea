@@ -24,6 +24,8 @@ int cb_tutorial_load(void* data, int argc, char** argv, char** col_name)
         memcpy(new->image, image, 200);
 
         da_push_to_id(db_tutorial.tutorials, Tutorial*, new, id);
+    } else {
+        assert(false && "SQL Table Changed!");
     }
 
     return 0;
