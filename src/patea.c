@@ -29,6 +29,8 @@
 #define PAGE_TUTORIAL "tutorial"
 #define PAGE_RESULT "result_lesson"
 
+#define BUF_SIZE 256
+
 global LessonState ls_state = { .lesson = NULL };
 global size_t tutorial_pos = 0;
 global GObject* pt_stack;
@@ -54,7 +56,6 @@ global GObject* pb_result;
 
 global GBytes* sound_hit;
 global GBytes* sound_miss;
-global GBytes* image_logo;
 
 internal void
 cb_tutorial_continue(GtkWidget* widget, gpointer data);
@@ -74,6 +75,18 @@ prepare_question(Lesson* ls)
         vte_terminal_feed(VTE_TERMINAL(term), question.question, strlen(question.question));
         vte_terminal_feed(VTE_TERMINAL(term), TX_LESSON_CHECK_NOTICE, strlen(TX_LESSON_CHECK_NOTICE));
         vte_terminal_feed_child(VTE_TERMINAL(term), TERM_CLEAN_LINE);
+
+        char buf[BUF_SIZE] = { 0 };
+
+        const char* home = getenv("HOME");
+        snprintf(buf, BUF_SIZE, "rm -f %s/.patea", home);
+        g_print("[SYSTEM] %s ", buf);
+        int err = system(buf);
+        if (err == 0) {
+            g_print("\x1b[92mOK\x1b[0m\n");
+        } else {
+            g_print("\x1b[91mERROR\x1b[0m: %d\n", err);
+        }
 
         gtk_stack_set_visible_child_name(GTK_STACK(pt_stack), "question_terminal");
     } else if (question.type == QUESTION_TEST) {
@@ -237,25 +250,63 @@ continue_test(long answer)
         g_print("[LESSON] user: %ld == answer: %d\n", answer, current.answer);
         is_answer_correct = answer == current.answer;
     } else if (current.type == QUESTION_TERMINAL) {
-        for (size_t i = 0; i < CHOICE_COUNT; i++) {
-            if (strlen(current.choice[i]) == 0) {
-                continue;
+
+        if (current.answer == 2) {
+
+            char buf[BUF_SIZE] = { 0 };
+            char path[BUF_SIZE] = { 0 };
+
+            const char* home = getenv("HOME");
+            snprintf(path, BUF_SIZE, "%s/.patea", home);
+            FILE* terminal_file = fopen(path, "r");
+            assert(terminal_file != NULL && "file is null");
+
+            int buf_read = 0;
+            do {
+                buf_read = fread(buf, 1, BUF_SIZE, terminal_file);
+                int err = ferror(terminal_file);
+                assert(err == 0 && "fread error");
+
+                g_print("[LESSON] Buf Read: %d\n", buf_read);
+                if (buf_read == 0) {
+                    return;
+                }
+
+                for (char* cut = strtok(buf, "\n"); cut != NULL; cut = strtok(NULL, "\n")) {
+                    g_print("[LESSON] Checking: |%s|\n", cut);
+                    if (!strcmp(cut, current.choice[0])) {
+                        is_answer_correct = true;
+                        break;
+                    }
+                }
+            } while (buf_read >= BUF_SIZE);
+
+            fclose(terminal_file);
+
+        } else if (current.answer == 1) {
+            for (size_t i = 0; i < CHOICE_COUNT; i++) {
+                if (strlen(current.choice[i]) == 0) {
+                    continue;
+                }
+                g_print("[LESSON] Checking: %s\n", current.choice[i]);
+                int res = system(current.choice[i]);
+
+                is_answer_correct = res == 0;
+                if (!is_answer_correct) {
+                    break;
+                }
             }
-            g_print("[LESSON] Checking: %s\n", current.choice[i]);
-            int res = system(current.choice[i]);
-            is_answer_correct = res == 0;
-            if (!is_answer_correct) {
-                break;
-            }
+        } else {
+            assert(false && "Invalid terminal question type!");
         }
     }
 
     if (is_answer_correct) {
-        sound_play(sound_hit);
         g_print("[LESSON] Correct Answer!\n");
+        sound_play(sound_hit);
     } else {
-        sound_play(sound_miss);
         g_print("[LESSON] Wrong Answer!\n");
+        sound_play(sound_miss);
     }
 
     ls_state.correct_answers += is_answer_correct ? 1 : -1;

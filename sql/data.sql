@@ -64,15 +64,16 @@ insert into LESSON_QUESTIONS values (NULL, 1, 0, 0, 'Pardus kim tarafindan gelis
 insert into LESSON_QUESTIONS values (NULL, 1, 1, 0, 'Pardus hangi linux tabanlidir ?','A: arch','B: ubuntu','C: mint','D: debian', 3);
 insert into LESSON_QUESTIONS values (NULL, 1, 2, 0, 'Pardus hangi paket yoneticisini kullanir ?','A: pacman','B: apt','C: dnf','D: dpkg', 1);
 
-insert into LESSONS values (NULL, 5, 'Terminal Nedir?', 'terminal_1', 7);
+insert into LESSONS values (NULL, 5, 'Terminal Nedir?', 'terminal_1', 8);
 
 insert into LESSON_QUESTIONS values (NULL, 2, 0, 0, 'Hangi komut ile klasor olusturulur ?','A: makedirectory','B: makefolder','C: mkdir','D: mkfdr', 2);
-insert into LESSON_QUESTIONS values (NULL, 2, 1, 1, 'mkdir komutunu kullanarak patea adinda bir klasor olustur.' || char(13) || char(10) || 'olusturulan klasorun yolu ~/patea olmali)' || char(13) || char(10),'test -d ~/patea','','','', 1);
-insert into LESSON_QUESTIONS values (NULL, 2, 2, 0, 'Klasor icine girmek icin hangi komut kullanilir ?','A: ps','B: cd','C: ls','D: ed', 1);
-insert into LESSON_QUESTIONS values (NULL, 2, 3, 0, 'Yeni bir dosya olusturmak icin hangi komut kullanilir ?','A: pkill','B: apt','C: pacman','D: touch', 3);
-insert into LESSON_QUESTIONS values (NULL, 2, 4, 1, '1.cd komutunu kullanarak patea klasorune gir.' || char(13) || char(10) || '2.touch komutunu kullanarak metin.txt adinda bir dosya olustur' || char(13) || char(10),'test -f ~/patea/metin.txt','','','', 1);
-insert into LESSON_QUESTIONS values (NULL, 2, 5, 0, 'Dosya yada klasor silmek icin hangi komut kullanilir ?','A: rm','B: ed','C: vi','D: ex', 0);
-insert into LESSON_QUESTIONS values (NULL, 2, 6, 1, 'rm komutunu kullanarak patea klasorunu sil.' || char(13) || char(10),'! test -d ~/patea','','','', 1);
+insert into LESSON_QUESTIONS values (NULL, 2, 1, 1, 'ls komutunu kullanarak klasorleri incele.' || char(13) || char(10),'ls','','','', 2);
+insert into LESSON_QUESTIONS values (NULL, 2, 2, 1, 'mkdir komutunu kullanarak patea adinda bir klasor olustur.' || char(13) || char(10) || 'olusturulan klasorun yolu ~/patea olmali)' || char(13) || char(10),'test -d ~/patea','','','', 1);
+insert into LESSON_QUESTIONS values (NULL, 2, 3, 0, 'Klasor icine girmek icin hangi komut kullanilir ?','A: ps','B: cd','C: ls','D: ed', 1);
+insert into LESSON_QUESTIONS values (NULL, 2, 4, 0, 'Yeni bir dosya olusturmak icin hangi komut kullanilir ?','A: pkill','B: apt','C: pacman','D: touch', 3);
+insert into LESSON_QUESTIONS values (NULL, 2, 5, 1, '1.cd komutunu kullanarak patea klasorune gir.' || char(13) || char(10) || '2.touch komutunu kullanarak metin.txt adinda bir dosya olustur' || char(13) || char(10),'test -f ~/patea/metin.txt','','','', 1);
+insert into LESSON_QUESTIONS values (NULL, 2, 6, 0, 'Dosya yada klasor silmek icin hangi komut kullanilir ?','A: rm','B: ed','C: vi','D: ex', 0);
+insert into LESSON_QUESTIONS values (NULL, 2, 7, 1, 'rm komutunu kullanarak patea klasorunu sil.' || char(13) || char(10),'! test -d ~/patea','','','', 1);
 
 insert into TUTORIAL values (NULL,'Pateaya Hoşgeldin!' || char(13) || char(10) || 'Burada pardus ve bilgisayar dünyası hakkında yeni bilgiler edineceksin!','');
 insert into TUTORIAL values (NULL,'Pateaya giriş yaptığında karşına farklı farklı bilgiler edinebileceğin birbirinden güzel testler çıkacak.','');

@@ -27,8 +27,11 @@ void term_spawn(GtkWidget* term)
     char* arg = "-ci";
     char* cmd
         = "PS1='[patea] > ' "
-          "PROMPT_COMMAND='history 1 | cut -f 5- -d \" \" >> ~/.patea' "
+          "PROMPT_COMMAND='history -c; "
+          "export PROMPT_COMMAND=\"fc -ln -0 | "
+          "sed '\\''s/^[ \\t]*//;s/[ \\t]*$//'\\'' >> ~/.patea\"' "
           "bash --noprofile --norc";
+
     gchar* command[] = {
         sh,
         arg,
