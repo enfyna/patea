@@ -3,6 +3,8 @@
 #include <gtk/gtk.h>
 #include <vte-2.91/vte/vte.h>
 
+#define TERM_FIFO "/tmp/patea"
+
 #define TERM_CLEAR_SCREEN "\033[2J\r\n", 6
 #define TERM_CLEAN_LINE "\x15\n", 2
 

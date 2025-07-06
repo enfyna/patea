@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <fcntl.h>
 #include <gio/gio.h>
 #include <glib.h>
 #include <gtk/gtk.h>
@@ -7,6 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include "gdk-pixbuf/gdk-pixbuf.h"
 #include "sql.h"
@@ -57,6 +60,8 @@ global GObject* pb_result;
 global GBytes* sound_hit;
 global GBytes* sound_miss;
 
+global int t_fifo = 0;
+
 internal void
 cb_tutorial_continue(GtkWidget* widget, gpointer data);
 
@@ -75,18 +80,6 @@ prepare_question(Lesson* ls)
         vte_terminal_feed(VTE_TERMINAL(term), question.question, strlen(question.question));
         vte_terminal_feed(VTE_TERMINAL(term), TX_LESSON_CHECK_NOTICE, strlen(TX_LESSON_CHECK_NOTICE));
         vte_terminal_feed_child(VTE_TERMINAL(term), TERM_CLEAN_LINE);
-
-        char buf[BUF_SIZE] = { 0 };
-
-        const char* home = getenv("HOME");
-        snprintf(buf, BUF_SIZE, "rm -f %s/.patea", home);
-        g_print("[SYSTEM] %s ", buf);
-        int err = system(buf);
-        if (err == 0) {
-            g_print("\x1b[92mOK\x1b[0m\n");
-        } else {
-            g_print("\x1b[91mERROR\x1b[0m: %d\n", err);
-        }
 
         gtk_stack_set_visible_child_name(GTK_STACK(pt_stack), "question_terminal");
     } else if (question.type == QUESTION_TEST) {
@@ -252,20 +245,14 @@ continue_test(long answer)
     } else if (current.type == QUESTION_TERMINAL) {
 
         if (current.answer == 2) {
+            assert(t_fifo >= 0 && "fifo not open!");
 
             char buf[BUF_SIZE] = { 0 };
-            char path[BUF_SIZE] = { 0 };
-
-            const char* home = getenv("HOME");
-            snprintf(path, BUF_SIZE, "%s/.patea", home);
-            FILE* terminal_file = fopen(path, "r");
-            assert(terminal_file != NULL && "file is null");
-
             int buf_read = 0;
+
             do {
-                buf_read = fread(buf, 1, BUF_SIZE, terminal_file);
-                int err = ferror(terminal_file);
-                assert(err == 0 && "fread error");
+                buf_read = read(t_fifo, buf, BUF_SIZE);
+                assert(buf_read >= 0 && "fifo destroyed ?");
 
                 g_print("[LESSON] Buf Read: %d\n", buf_read);
                 if (buf_read == 0) {
@@ -280,8 +267,6 @@ continue_test(long answer)
                     }
                 }
             } while (buf_read >= BUF_SIZE);
-
-            fclose(terminal_file);
 
         } else if (current.answer == 1) {
             for (size_t i = 0; i < CHOICE_COUNT; i++) {
@@ -523,6 +508,28 @@ activate(GtkApplication* app, gpointer user_data)
 
 int main(int argc, char** argv)
 {
+    int res;
+    do {
+        res = mkfifo(TERM_FIFO, 0600);
+        if (res == 0) {
+            g_print("[FIFO] Created fifo successfully.\n");
+        } else if (res == -1 && errno == 17) {
+            g_print("[FIFO] Existing fifo found. Removing and starting fresh.\n");
+            res = remove(TERM_FIFO);
+            continue;
+        } else {
+            g_error("[FIFO] Error(%d): %s\n", errno, strerror(errno));
+        }
+        break;
+    } while (1);
+
+    t_fifo = open(TERM_FIFO, O_RDONLY | O_NONBLOCK);
+    if (t_fifo > 0) {
+        g_print("[FIFO] Opened fifo successfully.\n");
+    } else {
+        g_error("[FIFO] Error(%d): %s\n", errno, strerror(errno));
+    }
+
     sqlite3* db = NULL;
 
     int rc = sqlite3_open_v2("patea.data", &db, SQLITE_OPEN_READWRITE, NULL);
@@ -545,11 +552,19 @@ int main(int argc, char** argv)
 
     int status = g_application_run(G_APPLICATION(app), argc, argv);
 
+    close(t_fifo);
+    res = remove(TERM_FIFO);
+    if (res == 0) {
+        g_print("[FIFO] Removed fifo successfully.\n");
+    } else {
+        g_print("[FIFO] Error(%d): %s\n", errno, strerror(errno));
+    }
+
     rc = sqlite3_close(db);
     if (rc == SQLITE_OK) {
         g_print("[DB] Closed database successfully.\n");
     } else {
-        g_error("[DB] Can't close database: %s\n", sqlite3_errmsg(db));
+        g_error("[DB] Error(%d): %s\n", rc, sqlite3_errmsg(db));
     }
 
     sound_uninit();
