@@ -9,6 +9,8 @@
 
 #include "da.h"
 
+#define MAX_QUESTION_LEN 200
+#define MAX_CHOICE_LEN 50
 #define CHOICE_COUNT 4
 #define LESSON_PAGE_PREFIX "lesson_"
 #define LESSON_PAGE_PREFIX_LEN 7
@@ -20,8 +22,8 @@ enum QUESTION_TYPE {
 
 typedef struct {
     enum QUESTION_TYPE type;
-    char question[200];
-    char choice[CHOICE_COUNT][50];
+    char question[MAX_QUESTION_LEN];
+    char choice[CHOICE_COUNT][MAX_CHOICE_LEN];
     int answer;
 } LessonQuestion;
 

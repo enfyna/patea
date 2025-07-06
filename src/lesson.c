@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include "func.h"
 #include "lesson.h"
@@ -64,12 +63,12 @@ int cb_lesson_load(void* data, int argc, char** argv, char** col_name)
         new->questions[question_pos].answer = answer;
         new->questions[question_pos].type = question_type;
 
-        strcpy(new->questions[question_pos].question, question);
+        strncpy(new->questions[question_pos].question, question, MAX_QUESTION_LEN);
 
-        strcpy(new->questions[question_pos].choice[0], choice1);
-        strcpy(new->questions[question_pos].choice[1], choice2);
-        strcpy(new->questions[question_pos].choice[2], choice3);
-        strcpy(new->questions[question_pos].choice[3], choice4);
+        strncpy(new->questions[question_pos].choice[0], choice1, MAX_CHOICE_LEN);
+        strncpy(new->questions[question_pos].choice[1], choice2, MAX_CHOICE_LEN);
+        strncpy(new->questions[question_pos].choice[2], choice3, MAX_CHOICE_LEN);
+        strncpy(new->questions[question_pos].choice[3], choice4, MAX_CHOICE_LEN);
     } else {
         assert(false && "SQL Table Changed!");
     }
