@@ -38,11 +38,7 @@
 
         make
 
-4. Create the database.
-
-        sqlite3 patea.data < sql/data.sql
-
-5. Run the project.
+4. Run the project.
 
          ./build/patea
 

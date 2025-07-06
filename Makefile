@@ -1,4 +1,4 @@
-default: build/patea
+default: patea.data build/patea
 
 CC=clang
 
@@ -26,6 +26,9 @@ build/gres.c: src/res/gres.xml src/res/*
 build/gres.h: src/res/gres.xml src/res/*
 	@mkdir -p build
 	glib-compile-resources src/res/gres.xml --generate-header --target=build/gres.h
+
+patea.data: sql/data.sql
+	sqlite3 patea.data < sql/data.sql
 
 .PHONY: clean
 clean:
