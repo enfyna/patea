@@ -1,5 +1,10 @@
-#include "lesson.h"
+#pragma once
+
+#include <sqlite3.h>
+#include <stdbool.h>
 #include <stddef.h>
+
+#include "utils.h"
 
 typedef struct {
     int id;

@@ -1,9 +1,9 @@
 #include <assert.h>
 #include <gtk/gtk.h>
 
-#include "func.h"
 #include "glib.h"
 #include "terminal.h"
+#include "utils.h"
 
 internal void
 cb_child_ready(VteTerminal* terminal, GPid pid, GError* error, gpointer user_data)

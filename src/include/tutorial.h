@@ -1,7 +1,8 @@
-#include <sqlite3.h>
-#include <stddef.h>
+#pragma once
 
-#include "lesson.h"
+#include <sqlite3.h>
+
+#include "utils.h"
 
 typedef struct {
     int id;

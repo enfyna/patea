@@ -1,3 +1,5 @@
+#include "glib.h"
+
 #define SQL_GET_USERS \
     "SELECT * FROM USERS;"
 #define SQL_GET_USER_RESULTS \

@@ -1,7 +1,7 @@
 #include <stddef.h>
 #include <string.h>
 
-#include "func.h"
+#include "utils.h"
 
 bool starts_with(const char* text, const char* prefix)
 {

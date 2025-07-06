@@ -1,13 +1,9 @@
 #pragma once
 
-#include <assert.h>
-#include <glib.h>
 #include <gtk/gtk.h>
 #include <sqlite3.h>
-#include <stdbool.h>
-#include <stddef.h>
 
-#include "da.h"
+#include "utils.h"
 
 #define MAX_QUESTION_LEN 200
 #define MAX_CHOICE_LEN 50

@@ -13,12 +13,11 @@
 
 #include "gdk-pixbuf/gdk-pixbuf.h"
 #include "sql.h"
-#include "text.h"
 
-#include "func.h"
 #include "lesson.h"
 #include "sound.h"
 #include "terminal.h"
+#include "text.h"
 #include "tutorial.h"
 #include "user.h"
 
@@ -174,7 +173,7 @@ int cb_lesson_result_get(void* data, int argc, char** argv, char** col_name)
     Lesson* lesson = lesson_get_from_id(lesson_id);
     assert(lesson->bt_text == NULL && "[ERROR] lesson->bt_text should always be freed beforehand.\n");
     lesson->bt_text
-        = g_strdup_printf(TX_LESSON_BUTTON, lesson->title, correct_count, lesson->question_count);
+        = g_strdup_printf(TX_LESSON_BUTTON, lesson->title, correct_count / (float)lesson->question_count * 100);
     gtk_button_set_label(GTK_BUTTON(lesson->bt), lesson->bt_text);
 
     return 0;
@@ -212,7 +211,7 @@ cb_login_user(GtkWidget* widget, gpointer data)
     {
         if (lesson->bt_text == NULL) {
             lesson->bt_text = g_strdup_printf(
-                TX_LESSON_BUTTON, lesson->title, 0, lesson->question_count);
+                TX_LESSON_BUTTON, lesson->title, 0.0);
             gtk_button_set_label(GTK_BUTTON(lesson->bt), lesson->bt_text);
         }
     }
@@ -316,11 +315,11 @@ continue_test(long answer)
 
         assert(lesson->bt_text != NULL && "[ERROR] lesson->bt_text should always be populated beforehand.\n");
         free(lesson->bt_text);
-        lesson->bt_text = g_strdup_printf(TX_LESSON_BUTTON, lesson->title, ls_state.correct_answers, lesson->question_count);
+        lesson->bt_text = g_strdup_printf(TX_LESSON_BUTTON, lesson->title, ls_state.correct_answers / (float)lesson->question_count * 100);
         gtk_button_set_label(GTK_BUTTON(lesson->bt), lesson->bt_text);
 
-        char buf[1024] = { 0 };
-        sprintf(buf, TX_LESSON_RESULT,
+        char buf[BUF_SIZE] = { 0 };
+        snprintf(buf, BUF_SIZE, TX_LESSON_RESULT,
             ls_state.correct_answers, lesson->question_count);
         gtk_label_set_text(GTK_LABEL(lb_result), buf);
 

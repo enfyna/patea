@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "func.h"
 #include "lesson.h"
 #include "sql.h"
 

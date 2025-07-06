@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "func.h"
 #include "sound.h"
+#include "utils.h"
 
 #define SOUND_BUF_SIZE 8
 

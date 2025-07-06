@@ -1,6 +1,8 @@
-#include "tutorial.h"
-#include "lesson.h"
+#include <assert.h>
+#include <stdio.h>
+
 #include "sql.h"
+#include "tutorial.h"
 #include "user.h"
 
 TutorialDB db_tutorial = { 0 };
