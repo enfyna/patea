@@ -205,7 +205,7 @@ cb_login_user(GtkWidget* widget, gpointer data)
         lesson->bt_text = NULL;
     }
 
-    sql_exec(dbl->db, cb_lesson_result_get, SQL_GET_USER_RESULTS, user->id);
+    sql_exec(dbl->db, cb_lesson_result_get, NULL, SQL_GET_USER_RESULTS, user->id);
 
     da_foreach(lesson, Lesson*, dbl->lessons)
     {
@@ -310,7 +310,7 @@ continue_test(long answer)
 
         LessonDB* dbl = lesson_get_db();
 
-        sql_exec(dbl->db, NULL, SQL_INSERT_LESSON_RESULT,
+        sql_exec(dbl->db, NULL, NULL, SQL_INSERT_LESSON_RESULT,
             ls_state.correct_answers, (int)user_get_current(), lesson->id);
 
         assert(lesson->bt_text != NULL && "[ERROR] lesson->bt_text should always be populated beforehand.\n");

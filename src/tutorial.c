@@ -44,7 +44,7 @@ void tutorial_init(sqlite3* db)
 void tutorial_set_user_completed(void)
 {
     size_t id = user_get_current();
-    sql_exec(db_tutorial.db, cb_tutorial_load,
+    sql_exec(db_tutorial.db, cb_tutorial_load, NULL,
         SQL_UPDATE_USER_TUTORIAL_COMPLETE, (int)id);
 }
 
