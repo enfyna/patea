@@ -45,10 +45,10 @@ typedef struct {
 } LessonDB;
 
 typedef struct {
-    Lesson* lesson;
-    LessonQuestion* question;
+    Lesson* ls;
+    LessonQuestion* qs;
     int correct_answers;
-    size_t question_pos;
+    size_t q_pos;
 } LessonState;
 
 void lesson_init(sqlite3* db);

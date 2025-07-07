@@ -35,7 +35,7 @@
 
 #define BUF_SIZE 256
 
-global LessonState ls_state = { .lesson = NULL };
+global LessonState ls_state = { .ls = NULL, .qs = NULL };
 global size_t tutorial_pos = 0;
 global GObject* pt_stack;
 
@@ -69,32 +69,31 @@ cb_tutorial_continue(GtkWidget* widget, gpointer data);
 internal void
 prepare_question(void)
 {
-    if (ls_state.question != NULL) {
-        free(ls_state.question);
+    if (ls_state.qs != NULL) {
+        free(ls_state.qs);
     }
-    ls_state.question = lesson_get_question(ls_state.lesson->id, ls_state.question_pos);
-    LessonQuestion* q = ls_state.question;
+    ls_state.qs = lesson_get_question(ls_state.ls->id, ls_state.q_pos);
 
-    gdouble fraction = (gdouble)ls_state.correct_answers / ls_state.lesson->question_count;
+    gdouble fraction = (gdouble)ls_state.correct_answers / ls_state.ls->question_count;
 
-    if (q->type == QUESTION_TERMINAL) {
-        gtk_label_set_text(GTK_LABEL(title_term), ls_state.lesson->title);
+    if (ls_state.qs->type == QUESTION_TERMINAL) {
+        gtk_label_set_text(GTK_LABEL(title_term), ls_state.ls->title);
         gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pb_term), fraction);
 
         vte_terminal_feed(VTE_TERMINAL(term), TERM_CLEAR_SCREEN);
-        vte_terminal_feed(VTE_TERMINAL(term), q->question, strlen(q->question));
+        vte_terminal_feed(VTE_TERMINAL(term), ls_state.qs->question, strlen(ls_state.qs->question));
         vte_terminal_feed(VTE_TERMINAL(term), TX_LESSON_CHECK_NOTICE, strlen(TX_LESSON_CHECK_NOTICE));
         vte_terminal_feed_child(VTE_TERMINAL(term), TERM_CLEAN_LINE);
 
         gtk_stack_set_visible_child_name(GTK_STACK(pt_stack), "question_terminal");
-    } else if (q->type == QUESTION_TEST) {
-        gtk_label_set_text(GTK_LABEL(title_test), ls_state.lesson->title);
-        gtk_label_set_text(GTK_LABEL(test_question), q->question);
+    } else if (ls_state.qs->type == QUESTION_TEST) {
+        gtk_label_set_text(GTK_LABEL(title_test), ls_state.ls->title);
+        gtk_label_set_text(GTK_LABEL(test_question), ls_state.qs->question);
         gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pb_test), fraction);
 
         for (size_t i = 0; i < CHOICE_COUNT; i++) {
             gtk_widget_set_sensitive(GTK_WIDGET(test_choices[i]), true);
-            gtk_button_set_label(GTK_BUTTON(test_choices[i]), q->choice[i]);
+            gtk_button_set_label(GTK_BUTTON(test_choices[i]), ls_state.qs->choice[i]);
         }
 
         gtk_stack_set_visible_child_name(GTK_STACK(pt_stack), "question_test");
@@ -124,18 +123,18 @@ change_page(const char* page_name)
     Lesson* lesson = lesson_get_from_name(page_name);
 
     assert(lesson != NULL);
-    assert(ls_state.question_pos < lesson->question_count);
+    assert(ls_state.q_pos < lesson->question_count);
 
-    if (lesson == ls_state.lesson) {
+    if (lesson == ls_state.ls) {
         g_print("[LESSON] Same as before.\n");
     } else {
         g_print("[LESSON] Selected: %s\n", lesson->title);
         ls_state.correct_answers = 0;
-        ls_state.question_pos = 0;
-        ls_state.question = NULL;
+        ls_state.q_pos = 0;
+        ls_state.qs = NULL;
     }
 
-    ls_state.lesson = lesson;
+    ls_state.ls = lesson;
 
     prepare_question();
 }
@@ -242,15 +241,14 @@ cb_change_page(GtkWidget* widget, gpointer data)
 internal void
 continue_test(long answer)
 {
-    Lesson* lesson = ls_state.lesson;
-    LessonQuestion* q = ls_state.question;
+    Lesson* lesson = ls_state.ls;
 
     bool is_answer_correct = false;
-    if (q->type == QUESTION_TEST) {
-        g_print("[LESSON] user: %ld == answer: %d\n", answer, q->answer);
-        is_answer_correct = answer == q->answer;
-    } else if (q->type == QUESTION_TERMINAL) {
-        if (q->answer == 2) {
+    if (ls_state.qs->type == QUESTION_TEST) {
+        g_print("[LESSON] user: %ld == answer: %d\n", answer, ls_state.qs->answer);
+        is_answer_correct = answer == ls_state.qs->answer;
+    } else if (ls_state.qs->type == QUESTION_TERMINAL) {
+        if (ls_state.qs->answer == 2) {
             assert(t_fifo >= 0 && "fifo not open!");
 
             char buf[BUF_SIZE] = { 0 };
@@ -266,21 +264,21 @@ continue_test(long answer)
                 }
 
                 for (char* cut = strtok(buf, "\n"); cut != NULL; cut = strtok(NULL, "\n")) {
-                    g_print("[LESSON] Checking: |%s| == |%s|\n", cut, q->choice[0]);
-                    if (!strcmp(cut, q->choice[0])) {
+                    g_print("[LESSON] Checking: |%s| == |%s|\n", cut, ls_state.qs->choice[0]);
+                    if (!strcmp(cut, ls_state.qs->choice[0])) {
                         is_answer_correct = true;
                         break;
                     }
                 }
             } while (buf_read >= BUF_SIZE);
 
-        } else if (q->answer == 1) {
+        } else if (ls_state.qs->answer == 1) {
             for (size_t i = 0; i < CHOICE_COUNT; i++) {
-                if (strlen(q->choice[i]) == 0) {
+                if (strlen(ls_state.qs->choice[i]) == 0) {
                     continue;
                 }
-                g_print("[LESSON] Checking: %s\n", q->choice[i]);
-                int res = system(q->choice[i]);
+                g_print("[LESSON] Checking: %s\n", ls_state.qs->choice[i]);
+                int res = system(ls_state.qs->choice[i]);
 
                 is_answer_correct = res == 0;
                 if (!is_answer_correct) {
@@ -311,10 +309,10 @@ continue_test(long answer)
         return;
     }
 
-    free(q);
-    q = NULL;
+    free(ls_state.qs);
+    ls_state.qs = NULL;
 
-    if (++ls_state.question_pos >= lesson->question_count) {
+    if (++ls_state.q_pos >= lesson->question_count) {
         gtk_label_set_text(GTK_LABEL(title_result), lesson->title);
         gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pb_result), fraction);
 
@@ -334,8 +332,8 @@ continue_test(long answer)
         gtk_label_set_text(GTK_LABEL(lb_result), buf);
 
         ls_state.correct_answers = 0;
-        ls_state.question_pos = 0;
-        ls_state.question = 0;
+        ls_state.q_pos = 0;
+        ls_state.qs = 0;
 
         change_page(PAGE_RESULT);
         return;
