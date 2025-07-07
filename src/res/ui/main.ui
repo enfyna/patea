@@ -60,7 +60,7 @@
             <property name="margin-right">16</property>
             <property name="margin-top">16</property>
             <property name="margin-bottom">16</property>
-            <property name="label" translatable="yes">Hosgeldin</property>
+            <property name="label" translatable="yes">Hoşgeldin</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -153,7 +153,7 @@
             <property name="can-focus">False</property>
             <property name="margin-top">16</property>
             <property name="margin-bottom">16</property>
-            <property name="label" translatable="yes">Hesabini Sec</property>
+            <property name="label" translatable="yes">Hesabını Seç</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -224,7 +224,7 @@
                 <property name="margin-right">8</property>
                 <property name="margin-top">8</property>
                 <property name="margin-bottom">8</property>
-                <property name="label" translatable="yes">Patea ile istedigin bir konuyu ogren.</property>
+                <property name="label" translatable="yes">Patea ile istediğin bir konuyu öğren.</property>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -418,7 +418,7 @@
             </child>
             <child>
               <object class="GtkButton" id="bt_lesson_exit0">
-                <property name="label" translatable="yes">Ana Sayfaya Don</property>
+                <property name="label" translatable="yes">Ana Sayfaya Dön</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
@@ -604,7 +604,7 @@
             <property name="spacing">12</property>
             <child>
               <object class="GtkButton" id="bt_lesson_exit1">
-                <property name="label" translatable="yes">Ana Sayfaya Don</property>
+                <property name="label" translatable="yes">Ana Sayfaya Dön</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
@@ -704,7 +704,7 @@
         </child>
         <child>
           <object class="GtkButton" id="bt_result_return">
-            <property name="label" translatable="yes">Ana Sayfaya Don</property>
+            <property name="label" translatable="yes">Ana Sayfaya Dön</property>
             <property name="visible">True</property>
             <property name="can-focus">True</property>
             <property name="receives-default">True</property>
