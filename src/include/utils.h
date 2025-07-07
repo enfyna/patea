@@ -33,10 +33,11 @@ typedef struct {
         free((arr).items);                       \
     } while (0)
 
-#define da_push(arr, type, item, id) da_push_to_id(arr, type, item, (arr).count)
+#define da_push(arr, type, item) da_push_to_id(arr, type, item, (arr).count)
 #define da_push_to_id(arr, type, item, id)                                     \
     do {                                                                       \
-        if ((arr).count >= (arr).capacity) {                                   \
+        if ((arr).count >= (arr).capacity                                      \
+            || (size_t)(id) >= (arr).capacity) {                               \
             (arr).capacity *= 2;                                               \
             (arr).items = realloc((arr).items, sizeof(type) * (arr).capacity); \
         }                                                                      \
