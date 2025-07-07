@@ -1,8 +1,7 @@
 #pragma once
 
 #include <sqlite3.h>
-
-#include "utils.h"
+#include <stddef.h>
 
 typedef struct {
     int id;
@@ -12,7 +11,6 @@ typedef struct {
 
 typedef struct {
     sqlite3* db;
-    da tutorials;
 } TutorialDB;
 
 void tutorial_init(sqlite3* db);

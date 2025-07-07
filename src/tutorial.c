@@ -1,5 +1,7 @@
 #include <assert.h>
+#include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "sql.h"
 #include "tutorial.h"
@@ -9,36 +11,40 @@ TutorialDB db_tutorial = { 0 };
 
 int cb_tutorial_load(void* data, int argc, char** argv, char** col_name)
 {
-    (void)data;
-    (void)argc;
+    Tutorial** lt = data;
+    *lt = calloc(1, sizeof(Tutorial));
 
-    int used_arg_count = 0;
-
-    if (0 == strcmp(col_name[0], "id")) {
-        size_t id = atoi(argv[used_arg_count++]);
-        char* text = (argv[used_arg_count++]);
-        char* image = (argv[used_arg_count++]);
-        assert(used_arg_count == argc && "SQL Table Changed!");
-
-        Tutorial* new = malloc(sizeof(Tutorial));
-        new->id = id;
-        memcpy(new->text, text, 200);
-        memcpy(new->image, image, 200);
-
-        da_push_to_id(db_tutorial.tutorials, Tutorial*, new, id);
-    } else {
-        assert(false && "SQL Table Changed!");
+    size_t used_arg_count = 0;
+    for (int i = 0; i < argc; i++) {
+        if (!strcmp(col_name[i], "id")) {
+            (*lt)->id = atoi(argv[i]);
+            used_arg_count++;
+        } else if (starts_with(col_name[i], "text")) {
+            strncpy((*lt)->text, argv[i], 200);
+            used_arg_count++;
+        } else if (!strcmp(col_name[i], "image")) {
+            strncpy((*lt)->image, argv[i], 200);
+            used_arg_count++;
+        }
     }
 
+    assert(used_arg_count == 3 && "Tutorial table changed");
+
     return 0;
+}
+
+Tutorial* get_tutorial(size_t id)
+{
+    Tutorial* t = NULL;
+
+    sql_exec(db_tutorial.db, cb_tutorial_load, &t, SQL_GET_TUTORIAL, id);
+
+    return t;
 }
 
 void tutorial_init(sqlite3* db)
 {
     db_tutorial.db = db;
-    da_init(Tutorial, db_tutorial.tutorials);
-
-    sql_exec(db, cb_tutorial_load, SQL_GET_TUTORIAL, NULL);
 }
 
 void tutorial_set_user_completed(void)
@@ -46,13 +52,4 @@ void tutorial_set_user_completed(void)
     size_t id = user_get_current();
     sql_exec(db_tutorial.db, cb_tutorial_load, NULL,
         SQL_UPDATE_USER_TUTORIAL_COMPLETE, (int)id);
-}
-
-Tutorial* get_tutorial(size_t id)
-{
-    assert(id > 0 && "[TUTORIAL] Negative ID.");
-    if (id > db_tutorial.tutorials.count) {
-        return NULL;
-    }
-    return (Tutorial*)db_tutorial.tutorials.items[id];
 }

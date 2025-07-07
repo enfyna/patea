@@ -5,6 +5,7 @@
 #include <gtk/gtk.h>
 #include <sqlite3.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,6 +21,7 @@
 #include "text.h"
 #include "tutorial.h"
 #include "user.h"
+#include "utils.h"
 
 #define TITLE "Patea"
 
@@ -65,30 +67,34 @@ internal void
 cb_tutorial_continue(GtkWidget* widget, gpointer data);
 
 internal void
-prepare_question(Lesson* ls)
+prepare_question(void)
 {
-    LessonQuestion question = ls->questions[ls_state.question];
+    if (ls_state.question != NULL) {
+        free(ls_state.question);
+    }
+    ls_state.question = lesson_get_question(ls_state.lesson->id, ls_state.question_pos);
+    LessonQuestion* q = ls_state.question;
 
-    gdouble fraction = (gdouble)ls_state.correct_answers / ls->question_count;
+    gdouble fraction = (gdouble)ls_state.correct_answers / ls_state.lesson->question_count;
 
-    if (question.type == QUESTION_TERMINAL) {
-        gtk_label_set_text(GTK_LABEL(title_term), ls->title);
+    if (q->type == QUESTION_TERMINAL) {
+        gtk_label_set_text(GTK_LABEL(title_term), ls_state.lesson->title);
         gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pb_term), fraction);
 
         vte_terminal_feed(VTE_TERMINAL(term), TERM_CLEAR_SCREEN);
-        vte_terminal_feed(VTE_TERMINAL(term), question.question, strlen(question.question));
+        vte_terminal_feed(VTE_TERMINAL(term), q->question, strlen(q->question));
         vte_terminal_feed(VTE_TERMINAL(term), TX_LESSON_CHECK_NOTICE, strlen(TX_LESSON_CHECK_NOTICE));
         vte_terminal_feed_child(VTE_TERMINAL(term), TERM_CLEAN_LINE);
 
         gtk_stack_set_visible_child_name(GTK_STACK(pt_stack), "question_terminal");
-    } else if (question.type == QUESTION_TEST) {
-        gtk_label_set_text(GTK_LABEL(title_test), ls->title);
-        gtk_label_set_text(GTK_LABEL(test_question), question.question);
+    } else if (q->type == QUESTION_TEST) {
+        gtk_label_set_text(GTK_LABEL(title_test), ls_state.lesson->title);
+        gtk_label_set_text(GTK_LABEL(test_question), q->question);
         gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pb_test), fraction);
 
         for (size_t i = 0; i < CHOICE_COUNT; i++) {
             gtk_widget_set_sensitive(GTK_WIDGET(test_choices[i]), true);
-            gtk_button_set_label(GTK_BUTTON(test_choices[i]), question.choice[i]);
+            gtk_button_set_label(GTK_BUTTON(test_choices[i]), q->choice[i]);
         }
 
         gtk_stack_set_visible_child_name(GTK_STACK(pt_stack), "question_test");
@@ -118,19 +124,20 @@ change_page(const char* page_name)
     Lesson* lesson = lesson_get_from_name(page_name);
 
     assert(lesson != NULL);
-    assert(ls_state.question < lesson->question_count);
+    assert(ls_state.question_pos < lesson->question_count);
 
     if (lesson == ls_state.lesson) {
         g_print("[LESSON] Same as before.\n");
     } else {
         g_print("[LESSON] Selected: %s\n", lesson->title);
         ls_state.correct_answers = 0;
-        ls_state.question = 0;
+        ls_state.question_pos = 0;
+        ls_state.question = NULL;
     }
 
     ls_state.lesson = lesson;
 
-    prepare_question(lesson);
+    prepare_question();
 }
 
 internal void
@@ -159,7 +166,9 @@ cb_tutorial_continue(GtkWidget* widget, gpointer data)
                 GTK_IMAGE(im_tutorial), "gtk-info", GTK_ICON_SIZE_DIALOG);
         }
     }
+    free(t);
 }
+
 int cb_lesson_result_get(void* data, int argc, char** argv, char** col_name)
 {
     (void)data;
@@ -234,16 +243,14 @@ internal void
 continue_test(long answer)
 {
     Lesson* lesson = ls_state.lesson;
-
-    LessonQuestion current = lesson->questions[ls_state.question];
+    LessonQuestion* q = ls_state.question;
 
     bool is_answer_correct = false;
-    if (current.type == QUESTION_TEST) {
-        g_print("[LESSON] user: %ld == answer: %d\n", answer, current.answer);
-        is_answer_correct = answer == current.answer;
-    } else if (current.type == QUESTION_TERMINAL) {
-
-        if (current.answer == 2) {
+    if (q->type == QUESTION_TEST) {
+        g_print("[LESSON] user: %ld == answer: %d\n", answer, q->answer);
+        is_answer_correct = answer == q->answer;
+    } else if (q->type == QUESTION_TERMINAL) {
+        if (q->answer == 2) {
             assert(t_fifo >= 0 && "fifo not open!");
 
             char buf[BUF_SIZE] = { 0 };
@@ -259,21 +266,21 @@ continue_test(long answer)
                 }
 
                 for (char* cut = strtok(buf, "\n"); cut != NULL; cut = strtok(NULL, "\n")) {
-                    g_print("[LESSON] Checking: |%s|\n", cut);
-                    if (!strcmp(cut, current.choice[0])) {
+                    g_print("[LESSON] Checking: |%s| == |%s|\n", cut, q->choice[0]);
+                    if (!strcmp(cut, q->choice[0])) {
                         is_answer_correct = true;
                         break;
                     }
                 }
             } while (buf_read >= BUF_SIZE);
 
-        } else if (current.answer == 1) {
+        } else if (q->answer == 1) {
             for (size_t i = 0; i < CHOICE_COUNT; i++) {
-                if (strlen(current.choice[i]) == 0) {
+                if (strlen(q->choice[i]) == 0) {
                     continue;
                 }
-                g_print("[LESSON] Checking: %s\n", current.choice[i]);
-                int res = system(current.choice[i]);
+                g_print("[LESSON] Checking: %s\n", q->choice[i]);
+                int res = system(q->choice[i]);
 
                 is_answer_correct = res == 0;
                 if (!is_answer_correct) {
@@ -304,7 +311,10 @@ continue_test(long answer)
         return;
     }
 
-    if (++ls_state.question >= lesson->question_count) {
+    free(q);
+    q = NULL;
+
+    if (++ls_state.question_pos >= lesson->question_count) {
         gtk_label_set_text(GTK_LABEL(title_result), lesson->title);
         gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pb_result), fraction);
 
@@ -324,13 +334,14 @@ continue_test(long answer)
         gtk_label_set_text(GTK_LABEL(lb_result), buf);
 
         ls_state.correct_answers = 0;
+        ls_state.question_pos = 0;
         ls_state.question = 0;
 
         change_page(PAGE_RESULT);
         return;
     }
 
-    prepare_question(lesson);
+    prepare_question();
 }
 
 internal void
@@ -453,16 +464,17 @@ activate(GtkApplication* app, gpointer user_data)
             gtk_box_pack_start(GTK_BOX(bx_user), GTK_WIDGET(button), false, true, 8);
         }
 
-        da_for(i, dbl->categories)
-        {
+        da categories = lesson_get_categories();
+        for (size_t i = 0; i < categories.count; i++) {
+            LessonCategory* cat = categories.items[i];
             GtkWidget* box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 8);
 
-            GtkWidget* label = gtk_label_new(dbl->categories.items[i]);
+            GtkWidget* label = gtk_label_new(cat->name);
             gtk_box_pack_start(GTK_BOX(box), GTK_WIDGET(label), false, false, 8);
 
             da_foreach(lesson, Lesson*, dbl->lessons)
             {
-                if (lesson->category_id != (int)i) {
+                if (lesson->category_id != (int)cat->id) {
                     continue;
                 }
 
@@ -476,6 +488,7 @@ activate(GtkApplication* app, gpointer user_data)
 
             gtk_box_pack_start(GTK_BOX(bx_category), GTK_WIDGET(box), true, true, 8);
         }
+        da_free(categories);
     }
 
     {

@@ -24,6 +24,11 @@ typedef struct {
 } LessonQuestion;
 
 typedef struct {
+    size_t id;
+    char name[16];
+} LessonCategory;
+
+typedef struct {
     GtkWidget* bt; // UI button
     char* bt_text; // UI button text
 
@@ -32,22 +37,23 @@ typedef struct {
     char* page_name;
     size_t question_count;
     int category_id;
-    LessonQuestion questions[];
 } Lesson;
 
 typedef struct {
     sqlite3* db;
     da lessons;
-    da categories;
 } LessonDB;
 
 typedef struct {
     Lesson* lesson;
+    LessonQuestion* question;
     int correct_answers;
-    size_t question;
+    size_t question_pos;
 } LessonState;
 
 void lesson_init(sqlite3* db);
 Lesson* lesson_get_from_id(size_t id);
 Lesson* lesson_get_from_name(const char* page_name);
+LessonQuestion* lesson_get_question(size_t id, size_t pos);
+da lesson_get_categories(void);
 LessonDB* lesson_get_db(void);
