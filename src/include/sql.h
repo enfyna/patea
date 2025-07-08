@@ -47,9 +47,9 @@
 #define sql_exec(db, func, data, fmt, ...)                      \
     do {                                                        \
         char buf[256] = { 0 };                                  \
-        snprintf(buf, 256, (fmt), __VA_ARGS__);                 \
+        snprintf(buf, 256, (fmt), ##__VA_ARGS__);               \
                                                                 \
-        g_print("[DB] %s" fmt##_ARGS " ", #fmt, __VA_ARGS__);   \
+        g_print("[DB] %s" fmt##_ARGS " ", #fmt, ##__VA_ARGS__);   \
         char* err;                                              \
         int rc = sqlite3_exec(db, buf, (func), (data), &err);   \
         if (rc == SQLITE_OK) {                                  \

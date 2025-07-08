@@ -40,7 +40,7 @@ void user_init(sqlite3* db)
 
     db_user.db = db;
 
-    sql_exec(db_user.db, cb_user_load, NULL, SQL_GET_USERS, NULL);
+    sql_exec(db_user.db, cb_user_load, NULL, SQL_GET_USERS);
 }
 
 void user_update(const char* key, const char* value)

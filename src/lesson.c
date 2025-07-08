@@ -80,7 +80,7 @@ da lesson_get_categories(void)
         .capacity = 2,
     };
 
-    sql_exec(db_lesson.db, cb_category_load, &lcc, SQL_GET_LESSON_CATEGORIES, NULL);
+    sql_exec(db_lesson.db, cb_category_load, &lcc, SQL_GET_LESSON_CATEGORIES);
 
     return lcc;
 }
@@ -126,7 +126,7 @@ void lesson_init(sqlite3* db)
 
     db_lesson.db = db;
 
-    sql_exec(db_lesson.db, cb_lesson_load, NULL, SQL_GET_LESSONS, NULL);
+    sql_exec(db_lesson.db, cb_lesson_load, NULL, SQL_GET_LESSONS);
 }
 
 Lesson* lesson_get_from_name(const char* name)
