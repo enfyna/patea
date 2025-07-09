@@ -7,5 +7,9 @@
         <file compressed="true" alias="image/logo">src/res/image/logo.png</file>
         <file compressed="true" alias="image/crossroad">src/res/image/crossroad.jpg</file>
         <file compressed="true" alias="image/brain">src/res/image/brain.png</file>
+        <file compressed="true" alias="image/kes_kopyala_yapistir">src/res/image/kes_kopyala_yapistir.png</file>
+        <file compressed="true" alias="image/linux">src/res/image/linux.jpg</file>
+        <file compressed="true" alias="image/pardus">src/res/image/pardus.jpg</file>
+        <file compressed="true" alias="image/tubitak">src/res/image/tubitak.png</file>
     </gresource>
 </gresources>

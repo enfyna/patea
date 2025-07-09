@@ -20,6 +20,7 @@ typedef struct {
     enum QUESTION_TYPE type;
     char question[MAX_QUESTION_LEN];
     char choice[CHOICE_COUNT][MAX_CHOICE_LEN];
+    char image[50];
     int answer;
 } LessonQuestion;
 

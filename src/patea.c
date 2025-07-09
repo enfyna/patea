@@ -53,6 +53,8 @@ global GObject* lb_result;
 global GObject* lb_tutorial;
 
 global GObject* im_tutorial;
+global GObject* im_lesson_test;
+global GObject* im_lesson_term;
 
 global GObject* pb_test;
 global GObject* pb_term;
@@ -74,30 +76,38 @@ prepare_question(void)
     }
     ls_state.qs = lesson_get_question(ls_state.ls->id, ls_state.q_pos);
 
-    gdouble fraction = (gdouble)ls_state.correct_answers / ls_state.ls->question_count;
+    gboolean is_term = ls_state.qs->type == QUESTION_TERMINAL;
 
-    if (ls_state.qs->type == QUESTION_TERMINAL) {
-        gtk_label_set_text(GTK_LABEL(title_term), ls_state.ls->title);
-        gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pb_term), fraction);
+    gtk_label_set_text(
+        GTK_LABEL(is_term ? title_term : title_test), ls_state.ls->title);
 
+    gfloat fraction = ls_state.correct_answers / (gfloat)ls_state.ls->question_count;
+    gtk_progress_bar_set_fraction(
+        GTK_PROGRESS_BAR(is_term ? pb_term : pb_test), fraction);
+
+    GObject* image = is_term ? im_lesson_term : im_lesson_test;
+    if (strlen(ls_state.qs->image) > 0) {
+        GdkPixbuf* gp = gdk_pixbuf_new_from_resource_at_scale(ls_state.qs->image, 200, 200, FALSE, NULL);
+        gtk_image_set_from_pixbuf(GTK_IMAGE(image), gp);
+    } else {
+        gtk_image_clear(GTK_IMAGE(image));
+    }
+
+    if (is_term) {
         vte_terminal_feed(VTE_TERMINAL(term), TERM_CLEAR_SCREEN);
         vte_terminal_feed(VTE_TERMINAL(term), ls_state.qs->question, strlen(ls_state.qs->question));
         vte_terminal_feed(VTE_TERMINAL(term), TX_LESSON_CHECK_NOTICE, strlen(TX_LESSON_CHECK_NOTICE));
         vte_terminal_feed_child(VTE_TERMINAL(term), TERM_CLEAN_LINE);
-
-        gtk_stack_set_visible_child_name(GTK_STACK(pt_stack), "question_terminal");
     } else if (ls_state.qs->type == QUESTION_TEST) {
-        gtk_label_set_text(GTK_LABEL(title_test), ls_state.ls->title);
         gtk_label_set_text(GTK_LABEL(test_question), ls_state.qs->question);
-        gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pb_test), fraction);
-
         for (size_t i = 0; i < CHOICE_COUNT; i++) {
             gtk_widget_set_sensitive(GTK_WIDGET(test_choices[i]), true);
             gtk_button_set_label(GTK_BUTTON(test_choices[i]), ls_state.qs->choice[i]);
         }
-
-        gtk_stack_set_visible_child_name(GTK_STACK(pt_stack), "question_test");
     }
+
+    gtk_stack_set_visible_child_name(
+        GTK_STACK(pt_stack), is_term ? "question_terminal" : "question_test");
 }
 
 internal void
@@ -401,6 +411,8 @@ activate(GtkApplication* app, gpointer user_data)
         lb_result = gtk_builder_get_object(bd_main, "lb_result");
         lb_tutorial = gtk_builder_get_object(bd_main, "lb_tutorial");
         im_tutorial = gtk_builder_get_object(bd_main, "im_tutorial");
+        im_lesson_test = gtk_builder_get_object(bd_main, "im_lesson_test");
+        im_lesson_term = gtk_builder_get_object(bd_main, "im_lesson_term");
         pb_test = gtk_builder_get_object(bd_main, "pb_test");
         pb_term = gtk_builder_get_object(bd_main, "pb_term");
         pb_result = gtk_builder_get_object(bd_main, "pb_result");

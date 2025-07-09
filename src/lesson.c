@@ -29,13 +29,16 @@ int cb_question_load(void* data, int argc, char** argv, char** col_name)
         } else if (!strcmp(col_name[i], "question")) {
             strncpy((*l)->question, argv[i], MAX_QUESTION_LEN);
             used_arg_count++;
+        } else if (!strcmp(col_name[i], "image")) {
+            strncpy((*l)->image, argv[i], 50);
+            used_arg_count++;
         } else if (!strcmp(col_name[i], "question_type")) {
             (*l)->type = atoi(argv[i]);
             used_arg_count++;
         }
     }
 
-    assert(used_arg_count == 7 && "Question table changed");
+    assert(used_arg_count == 8 && "Question table changed");
 
     return 0;
 }
