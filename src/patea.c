@@ -382,12 +382,12 @@ activate(GtkApplication* app, gpointer user_data)
         g_error("Couldnt load file: %s, %d, %u\n", err->message, err->code, err->domain);
     }
 
-    sound_hit = g_resources_lookup_data("/org/gtk/patea/sound/hit-sound.mp3", G_RESOURCE_LOOKUP_FLAGS_NONE, &err);
+    sound_hit = g_resources_lookup_data("/org/gtk/patea/sound/hit", G_RESOURCE_LOOKUP_FLAGS_NONE, &err);
     if (sound_hit == NULL) {
         g_error("Couldnt load file: %s, %d, %u\n", err->message, err->code, err->domain);
     }
 
-    sound_miss = g_resources_lookup_data("/org/gtk/patea/sound/miss-sound.mp3", G_RESOURCE_LOOKUP_FLAGS_NONE, &err);
+    sound_miss = g_resources_lookup_data("/org/gtk/patea/sound/miss", G_RESOURCE_LOOKUP_FLAGS_NONE, &err);
     if (sound_miss == NULL) {
         g_error("Couldnt load file: %s, %d, %u\n", err->message, err->code, err->domain);
     }

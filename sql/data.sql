@@ -50,8 +50,8 @@ create table TUTORIAL (
 
 insert into TUTORIAL values 
     (NULL,'Pateaya Hoşgeldin!' || char(13) || char(10) || 'Burada pardus ve bilgisayar dünyası hakkında yeni bilgiler edineceksin!','/org/gtk/patea/image/logo'),
-    (NULL,'Pateaya giriş yaptığında karşına farklı farklı bilgiler edinebileceğin birbirinden güzel testler çıkacak.',''),
-    (NULL,'Testlerde 2 tip soru var:' || char(13) || char(10) || '1. Çoktan seçmeli 4.şıklı sorular,' || char(13) || char(10) || '2. Terminalde komutlar çalıştıracağın uygulamalı sorular.',''),
+    (NULL,'Pateaya giriş yaptığında karşına farklı farklı bilgiler edinebileceğin birbirinden güzel testler çıkacak.','/org/gtk/patea/image/brain'),
+    (NULL,'Testlerde 2 tip soru var:' || char(13) || char(10) || '1. Çoktan seçmeli 4.şıklı sorular,' || char(13) || char(10) || '2. Terminalde komutlar çalıştıracağın uygulamalı sorular.','/org/gtk/patea/image/crossroad'),
     (NULL,'Başarılar!!!','/org/gtk/patea/image/logo');
 
 insert into USERS (user_id, name) values 
