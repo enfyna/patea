@@ -118,7 +118,7 @@ int cb_lesson_load(void* data, int argc, char** argv, char** col_name)
 
     assert(used_arg_count == 5 && "Lesson table changed");
 
-    da_push_to_id(db_lesson.lessons, Lesson*, new, new->id);
+    da_push(db_lesson.lessons, Lesson*, new);
 
     return 0;
 }
@@ -137,8 +137,8 @@ Lesson* lesson_get_from_name(const char* name)
     // removing "lesson_" prefix
     const char* lesson_name = name + LESSON_PAGE_PREFIX_LEN;
 
-    da_foreach(lesson, Lesson*, db_lesson.lessons)
-    {
+    for (size_t i = 0; i < db_lesson.lessons.count; i++) {
+        Lesson* lesson = db_lesson.lessons.items[i];
         if (0 == strcmp(lesson->page_name, lesson_name)) {
             return lesson;
         }
@@ -150,7 +150,13 @@ Lesson* lesson_get_from_name(const char* name)
 Lesson* lesson_get_from_id(size_t id)
 {
     assert(id > 0 && id <= db_lesson.lessons.count && "[LESSON] Out of bounds.");
-    return db_lesson.lessons.items[id];
+    for (size_t i = 0; i < db_lesson.lessons.count; i++) {
+        Lesson* lesson = db_lesson.lessons.items[i];
+        if (lesson->id == (int)id) {
+            return lesson;
+        }
+    }
+    assert(false && "[LESSON] Unknown lesson id.\n");
 }
 
 LessonDB* lesson_get_db(void)

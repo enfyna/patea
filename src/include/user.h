@@ -19,6 +19,7 @@ typedef struct {
 } UserDB;
 
 void user_init(sqlite3* db);
+User* user_get_user(size_t id);
 da user_get_users(void);
 void user_set_current(size_t id);
 size_t user_get_current(void);

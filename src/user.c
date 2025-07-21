@@ -26,7 +26,7 @@ int cb_user_load(void* data, int argc, char** argv, char** col_name)
         new->name = user_name;
         new->tutorial = user_tutorial;
 
-        da_push_to_id(db_user.users, User*, new, user_id);
+        da_push(db_user.users, User*, new);
     } else {
         assert(false && "SQL Table Changed!");
     }
@@ -46,12 +46,26 @@ void user_init(sqlite3* db)
 void user_update(const char* key, const char* value)
 {
     sql_exec(db_user.db, NULL, NULL, SQL_UPDATE_USER, key, value, db_user.id_user);
+
+    da_free(db_user.users);
+
     user_init(db_user.db);
 }
 
 da user_get_users(void)
 {
     return db_user.users;
+}
+
+User* user_get_user(size_t id)
+{
+    for (size_t i = 0; i < db_user.users.count; i++) {
+        User* user = db_user.users.items[i];
+        if (user->id == (int)id) {
+            return user;
+        }
+    }
+    return NULL;
 }
 
 void user_set_current(size_t id)
