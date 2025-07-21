@@ -36,7 +36,7 @@
 
 3. Build the project.
 
-        make
+        make -j
 
 4. Run the project.
 
