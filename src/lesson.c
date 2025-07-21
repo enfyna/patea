@@ -149,7 +149,6 @@ Lesson* lesson_get_from_name(const char* name)
 
 Lesson* lesson_get_from_id(size_t id)
 {
-    assert(id > 0 && id <= db_lesson.lessons.count && "[LESSON] Out of bounds.");
     for (size_t i = 0; i < db_lesson.lessons.count; i++) {
         Lesson* lesson = db_lesson.lessons.items[i];
         if (lesson->id == (int)id) {
