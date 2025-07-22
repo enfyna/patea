@@ -11,25 +11,26 @@ UserDB db_user = { 0 };
 int cb_user_load(void* data, int argc, char** argv, char** col_name)
 {
     (void)data;
-    (void)argc;
 
-    int used_arg_count = 0;
+    User* new = malloc(sizeof(User));
 
-    if (0 == strcmp(col_name[0], "user_id")) {
-        int user_id = atoi(argv[used_arg_count++]);
-        bool user_tutorial = atoi(argv[used_arg_count++]);
-        char* user_name = strdup(argv[used_arg_count++]);
-        assert(used_arg_count == argc && "SQL Table Changed!");
-
-        User* new = malloc(sizeof(User));
-        new->id = user_id;
-        new->name = user_name;
-        new->tutorial = user_tutorial;
-
-        da_push(db_user.users, User*, new);
-    } else {
-        assert(false && "SQL Table Changed!");
+    size_t used_arg_count = 0;
+    for (int i = 0; i < argc; i++) {
+        if (!strcmp(col_name[i], "name")) {
+            new->name = strdup(argv[i]);
+            used_arg_count++;
+        } else if (!strcmp(col_name[i], "user_id")) {
+            new->id = atoi(argv[i]);
+            used_arg_count++;
+        } else if (!strcmp(col_name[i], "tutorial")) {
+            new->tutorial = atoi(argv[i]);
+            used_arg_count++;
+        }
     }
+
+    assert(used_arg_count == 3 && "User Table Changed!");
+
+    da_push(db_user.users, User*, new);
 
     return 0;
 }
