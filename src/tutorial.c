@@ -5,7 +5,6 @@
 
 #include "sql.h"
 #include "tutorial.h"
-#include "user.h"
 
 TutorialDB db_tutorial = { 0 };
 
@@ -19,7 +18,7 @@ int cb_tutorial_load(void* data, int argc, char** argv, char** col_name)
         if (!strcmp(col_name[i], "id")) {
             (*lt)->id = atoi(argv[i]);
             used_arg_count++;
-        } else if (starts_with(col_name[i], "text")) {
+        } else if (!strcmp(col_name[i], "text")) {
             strncpy((*lt)->text, argv[i], 200);
             used_arg_count++;
         } else if (!strcmp(col_name[i], "image")) {
@@ -45,11 +44,4 @@ Tutorial* get_tutorial(size_t id)
 void tutorial_init(sqlite3* db)
 {
     db_tutorial.db = db;
-}
-
-void tutorial_set_user_completed(void)
-{
-    size_t id = user_get_current();
-    sql_exec(db_tutorial.db, cb_tutorial_load, NULL,
-        SQL_UPDATE_USER_TUTORIAL_COMPLETE, (int)id);
 }

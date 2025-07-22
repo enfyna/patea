@@ -15,4 +15,3 @@ typedef struct {
 
 void tutorial_init(sqlite3* db);
 Tutorial* get_tutorial(size_t id);
-void tutorial_set_user_completed(void);
