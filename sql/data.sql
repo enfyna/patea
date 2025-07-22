@@ -27,7 +27,7 @@ create table LESSON_QUESTIONS (
 create table LESSONS (
 	lesson_id INTEGER PRIMARY KEY,
 	category_id int NOT NULL DEFAULT 1,
-	title varchar(200),
+	title varchar(48),
 	page_name varchar(50),
 	question_count int,
 	FOREIGN KEY (category_id) REFERENCES LESSON_CATEGORIES(category_id)

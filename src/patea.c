@@ -178,26 +178,6 @@ cb_tutorial_continue(GtkWidget* widget, gpointer data)
     free(t);
 }
 
-int cb_lesson_result_get(void* data, int argc, char** argv, char** col_name)
-{
-    (void)data;
-    (void)col_name;
-
-    assert(argc == 4);
-
-    int correct_count = atoi(argv[1]);
-    int lesson_id = atoi(argv[3]);
-
-    Lesson* lesson = lesson_get_from_id(lesson_id);
-    assert(lesson->bt_text == NULL && "[ERROR] lesson->bt_text should always be freed beforehand.\n");
-    lesson->bt_text = g_strdup_printf(
-        TX_LESSON_BUTTON, lesson->title,
-        correct_count / (float)lesson->question_count * 100);
-    gtk_button_set_label(GTK_BUTTON(lesson->bt), lesson->bt_text);
-
-    return 0;
-}
-
 internal void
 cb_login_user(GtkWidget* widget, gpointer data)
 {
@@ -206,7 +186,6 @@ cb_login_user(GtkWidget* widget, gpointer data)
     long user_id = (long)data;
     User* user = user_get_user(user_id);
 
-    LessonDB* dbl = lesson_get_db();
     user_set_current(user->id);
     tutorial_pos = 0;
 
@@ -216,24 +195,7 @@ cb_login_user(GtkWidget* widget, gpointer data)
 
     g_print("[LESSON] Selected user: [%d] %s\n", user->id, user->name);
 
-    for (size_t i = 0; i < dbl->lessons.count; i++) {
-        Lesson* lesson = dbl->lessons.items[i];
-        if (lesson->bt_text != NULL) {
-            free(lesson->bt_text);
-        }
-        lesson->bt_text = NULL;
-    }
-
-    sql_exec(dbl->db, cb_lesson_result_get, NULL, SQL_GET_USER_RESULTS, user->id);
-
-    for (size_t i = 0; i < dbl->lessons.count; i++) {
-        Lesson* lesson = dbl->lessons.items[i];
-        if (lesson->bt_text == NULL) {
-            lesson->bt_text = g_strdup_printf(
-                TX_LESSON_BUTTON, lesson->title, 0.0);
-            gtk_button_set_label(GTK_BUTTON(lesson->bt), lesson->bt_text);
-        }
-    }
+    lesson_update_bt_texts(user->id);
 
     user->tutorial == false ? change_page(PAGE_TUTORIAL)
                             : change_page(PAGE_MAIN);
@@ -269,7 +231,7 @@ continue_test(long answer)
                 buf_read = read(t_fifo, buf, BUF_SIZE);
                 assert(buf_read >= 0 && "fifo destroyed ?");
 
-                g_print("[LESSON] Buf Read: %d\n", buf_read);
+                g_print("[FIFO] Buf Read: %d\n", buf_read);
                 if (buf_read == 0) {
                     return;
                 }
@@ -327,17 +289,16 @@ continue_test(long answer)
         gtk_label_set_text(GTK_LABEL(title_result), lesson->title);
         gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pb_result), fraction);
 
-        LessonDB* dbl = lesson_get_db();
-
-        sql_exec(dbl->db, NULL, NULL, SQL_INSERT_LESSON_RESULT,
-            ls_state.correct_answers, (int)user_get_current(), lesson->id);
-
-        assert(lesson->bt_text != NULL && "[ERROR] lesson->bt_text should always be populated beforehand.\n");
-        free(lesson->bt_text);
-        lesson->bt_text = g_strdup_printf(TX_LESSON_BUTTON, lesson->title, ls_state.correct_answers / (float)lesson->question_count * 100);
-        gtk_button_set_label(GTK_BUTTON(lesson->bt), lesson->bt_text);
+        lesson_set_user_result(
+            user_get_current(),
+            lesson->id,
+            ls_state.correct_answers);
 
         char buf[BUF_SIZE] = { 0 };
+        snprintf(buf, 64, TX_LESSON_BUTTON,
+            lesson->title, ls_state.correct_answers / (float)lesson->question_count * 100);
+        gtk_button_set_label(GTK_BUTTON(lesson->bt), buf);
+
         snprintf(buf, BUF_SIZE, TX_LESSON_RESULT,
             ls_state.correct_answers, lesson->question_count);
         gtk_label_set_text(GTK_LABEL(lb_result), buf);
@@ -456,7 +417,6 @@ activate(GtkApplication* app, gpointer user_data)
     }
 
     {
-        LessonDB* dbl = lesson_get_db();
         da users = user_get_users();
 
         GObject* bx_user = gtk_builder_get_object(bd_main, "bx_user");
@@ -473,6 +433,7 @@ activate(GtkApplication* app, gpointer user_data)
             gtk_box_pack_start(GTK_BOX(bx_user), GTK_WIDGET(button), false, true, 8);
         }
 
+        da lessons = lesson_get_lessons();
         da categories = lesson_get_categories();
         for (size_t i = 0; i < categories.count; i++) {
             LessonCategory* cat = categories.items[i];
@@ -481,8 +442,8 @@ activate(GtkApplication* app, gpointer user_data)
             GtkWidget* label = gtk_label_new(cat->name);
             gtk_box_pack_start(GTK_BOX(box), GTK_WIDGET(label), false, false, 8);
 
-            for (size_t i = 0; i < dbl->lessons.count; i++) {
-                Lesson* lesson = dbl->lessons.items[i];
+            for (size_t i = 0; i < lessons.count; i++) {
+                Lesson* lesson = lessons.items[i];
 
                 if (lesson->category_id != (int)cat->id) {
                     continue;

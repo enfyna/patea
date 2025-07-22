@@ -8,6 +8,7 @@
 
 #include "lesson.h"
 #include "sql.h"
+#include "text.h"
 #include "utils.h"
 
 global LessonDB db_lesson = { 0 };
@@ -94,7 +95,6 @@ int cb_lesson_load(void* data, int argc, char** argv, char** col_name)
 
     Lesson* new = malloc(sizeof(Lesson));
     new->bt = NULL;
-    new->bt_text = NULL;
 
     size_t used_arg_count = 0;
     for (int i = 0; i < argc; i++) {
@@ -132,6 +132,11 @@ void lesson_init(sqlite3* db)
     sql_exec(db_lesson.db, cb_lesson_load, NULL, SQL_GET_LESSONS);
 }
 
+da lesson_get_lessons(void)
+{
+    return db_lesson.lessons;
+}
+
 Lesson* lesson_get_from_name(const char* name)
 {
     // removing "lesson_" prefix
@@ -158,7 +163,49 @@ Lesson* lesson_get_from_id(size_t id)
     assert(false && "[LESSON] Unknown lesson id.\n");
 }
 
-LessonDB* lesson_get_db(void)
+void lesson_set_user_result(int user_id, int lesson_id, int result)
 {
-    return &db_lesson;
+    sql_exec(db_lesson.db, NULL, NULL, SQL_INSERT_LESSON_RESULT,
+        result, user_id, lesson_id);
+}
+
+int cb_lesson_result_get(void* data, int argc, char** argv, char** col_name)
+{
+    (void)data;
+    (void)col_name;
+
+    int correct_count, lesson_id;
+
+    size_t used_arg_count = 0;
+    for (int i = 0; i < argc; i++) {
+        if (!strcmp(col_name[i], "correct_count")) {
+            correct_count = atoi(argv[i]);
+            used_arg_count++;
+        } else if (!strcmp(col_name[i], "lesson_id")) {
+            lesson_id = atoi(argv[i]);
+            used_arg_count++;
+        }
+    }
+
+    assert(used_arg_count == 2 && "Lesson Result table changed");
+
+    Lesson* lesson = lesson_get_from_id(lesson_id);
+    char text[64];
+    snprintf(text, 64, TX_LESSON_BUTTON,
+        lesson->title, correct_count / (float)lesson->question_count * 100);
+    gtk_button_set_label(GTK_BUTTON(lesson->bt), text);
+
+    return 0;
+}
+
+void lesson_update_bt_texts(int user_id)
+{
+    char text[64];
+    for (size_t i = 0; i < db_lesson.lessons.count; i++) {
+        Lesson* lesson = db_lesson.lessons.items[i];
+        snprintf(text, 64, TX_LESSON_BUTTON, lesson->title, 0.0);
+        gtk_button_set_label(GTK_BUTTON(lesson->bt), text);
+    }
+
+    sql_exec(db_lesson.db, cb_lesson_result_get, NULL, SQL_GET_USER_RESULTS, user_id);
 }

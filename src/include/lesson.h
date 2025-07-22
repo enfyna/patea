@@ -31,7 +31,6 @@ typedef struct {
 
 typedef struct {
     GtkWidget* bt; // UI button
-    char* bt_text; // UI button text
 
     int id;
     char* title;
@@ -53,8 +52,11 @@ typedef struct {
 } LessonState;
 
 void lesson_init(sqlite3* db);
+da lesson_get_lessons(void);
 Lesson* lesson_get_from_id(size_t id);
 Lesson* lesson_get_from_name(const char* page_name);
 LessonQuestion* lesson_get_question(size_t id, size_t pos);
 da lesson_get_categories(void);
-LessonDB* lesson_get_db(void);
+
+void lesson_update_bt_texts(int user_id);
+void lesson_set_user_result(int user_id, int lesson_id, int result);
