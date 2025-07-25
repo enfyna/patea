@@ -11,18 +11,19 @@ TutorialDB db_tutorial = { 0 };
 int cb_tutorial_load(void* data, int argc, char** argv, char** col_name)
 {
     Tutorial** lt = data;
-    *lt = calloc(1, sizeof(Tutorial));
+    Tutorial* p = calloc(1, sizeof(Tutorial));
+    *lt = p;
 
     size_t used_arg_count = 0;
     for (int i = 0; i < argc; i++) {
         if (!strcmp(col_name[i], "id")) {
-            (*lt)->id = atoi(argv[i]);
+            p->id = atoi(argv[i]);
             used_arg_count++;
         } else if (!strcmp(col_name[i], "text")) {
-            strncpy((*lt)->text, argv[i], 200);
+            strncpy(p->text, argv[i], sizeof p->text);
             used_arg_count++;
         } else if (!strcmp(col_name[i], "image")) {
-            strncpy((*lt)->image, argv[i], 200);
+            strncpy(p->image, argv[i], sizeof p->image);
             used_arg_count++;
         }
     }

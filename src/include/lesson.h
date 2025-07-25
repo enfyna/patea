@@ -5,11 +5,13 @@
 
 #include "utils.h"
 
-#define MAX_QUESTION_LEN 200
-#define MAX_CHOICE_LEN 50
-#define CHOICE_COUNT 4
-#define LESSON_PAGE_PREFIX "lesson_"
-#define LESSON_PAGE_PREFIX_LEN 7
+#define LS_MAX_QUESTION_LEN 200
+#define LS_MAX_CHOICE_LEN 50
+#define LS_MAX_IMAGE_LEN 50
+#define LS_MAX_LESSON_NAME_LEN 16
+#define LS_CHOICE_COUNT 4
+#define LS_PREFIX "lesson_"
+#define LS_PREFIX_LEN (sizeof LS_PREFIX - 1)
 
 enum QUESTION_TYPE {
     QUESTION_TEST,
@@ -18,15 +20,15 @@ enum QUESTION_TYPE {
 
 typedef struct {
     enum QUESTION_TYPE type;
-    char question[MAX_QUESTION_LEN];
-    char choice[CHOICE_COUNT][MAX_CHOICE_LEN];
-    char image[50];
+    char question[LS_MAX_QUESTION_LEN];
+    char choice[LS_CHOICE_COUNT][LS_MAX_CHOICE_LEN];
+    char image[LS_MAX_IMAGE_LEN];
     int answer;
 } LessonQuestion;
 
 typedef struct {
     size_t id;
-    char name[16];
+    char name[LS_MAX_LESSON_NAME_LEN];
 } LessonCategory;
 
 typedef struct {

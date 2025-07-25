@@ -16,25 +16,27 @@ global LessonDB db_lesson = { 0 };
 int cb_question_load(void* data, int argc, char** argv, char** col_name)
 {
     LessonQuestion** l = data;
-    (*l) = calloc(1, sizeof(LessonQuestion));
+    LessonQuestion* p = calloc(1, sizeof(LessonQuestion));
+    *l = p;
 
     size_t used_arg_count = 0;
     for (int i = 0; i < argc; i++) {
         if (!strcmp(col_name[i], "answer")) {
-            (*l)->answer = atoi(argv[i]);
+            p->answer = atoi(argv[i]);
             used_arg_count++;
         } else if (starts_with(col_name[i], "choice")) {
-            const char* idx = col_name[i] + 6;
-            strncpy((*l)->choice[atoi(idx) - 1], argv[i], MAX_CHOICE_LEN);
+            const char* c_idx = col_name[i] + (sizeof "choice" - 1);
+            const int idx = atoi(c_idx) - 1;
+            strncpy(p->choice[idx], argv[i], sizeof p->choice[idx]);
             used_arg_count++;
         } else if (!strcmp(col_name[i], "question")) {
-            strncpy((*l)->question, argv[i], MAX_QUESTION_LEN);
+            strncpy(p->question, argv[i], sizeof p->question);
             used_arg_count++;
         } else if (!strcmp(col_name[i], "image")) {
-            strncpy((*l)->image, argv[i], 50);
+            strncpy(p->image, argv[i], sizeof p->image);
             used_arg_count++;
         } else if (!strcmp(col_name[i], "question_type")) {
-            (*l)->type = atoi(argv[i]);
+            p->type = atoi(argv[i]);
             used_arg_count++;
         }
     }
@@ -64,7 +66,7 @@ int cb_category_load(void* data, int argc, char** argv, char** col_name)
             new->id = atoi(argv[i]);
             used_arg_count++;
         } else if (!strcmp(col_name[i], "name")) {
-            strncpy(new->name, argv[i], 16);
+            strncpy(new->name, argv[i], sizeof new->name);
             used_arg_count++;
         }
     }
@@ -140,7 +142,7 @@ da lesson_get_lessons(void)
 Lesson* lesson_get_from_name(const char* name)
 {
     // removing "lesson_" prefix
-    const char* lesson_name = name + LESSON_PAGE_PREFIX_LEN;
+    const char* lesson_name = name + LS_PREFIX_LEN;
 
     for (size_t i = 0; i < db_lesson.lessons.count; i++) {
         Lesson* lesson = db_lesson.lessons.items[i];
@@ -191,7 +193,7 @@ int cb_lesson_result_get(void* data, int argc, char** argv, char** col_name)
 
     Lesson* lesson = lesson_get_from_id(lesson_id);
     char text[64];
-    snprintf(text, 64, TX_LESSON_BUTTON,
+    snprintf(text, sizeof text, TX_LESSON_BUTTON,
         lesson->title, correct_count / (float)lesson->question_count * 100);
     gtk_button_set_label(GTK_BUTTON(lesson->bt), text);
 
@@ -203,7 +205,7 @@ void lesson_update_bt_texts(int user_id)
     char text[64];
     for (size_t i = 0; i < db_lesson.lessons.count; i++) {
         Lesson* lesson = db_lesson.lessons.items[i];
-        snprintf(text, 64, TX_LESSON_BUTTON, lesson->title, 0.0);
+        snprintf(text, sizeof text, TX_LESSON_BUTTON, lesson->title, 0.0);
         gtk_button_set_label(GTK_BUTTON(lesson->bt), text);
     }
 

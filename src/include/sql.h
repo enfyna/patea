@@ -47,7 +47,7 @@
 #define sql_exec(db, func, data, fmt, ...)                      \
     do {                                                        \
         char buf[256] = { 0 };                                  \
-        snprintf(buf, 256, (fmt), ##__VA_ARGS__);               \
+        snprintf(buf, sizeof buf, (fmt), ##__VA_ARGS__);               \
                                                                 \
         g_print("[DB] %s" fmt##_ARGS " ", #fmt, ##__VA_ARGS__);   \
         char* err;                                              \

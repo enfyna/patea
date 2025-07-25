@@ -3,10 +3,13 @@
 #include <sqlite3.h>
 #include <stddef.h>
 
+#define TT_MAX_TEXT_LEN 200
+#define TT_MAX_IMAGE_LEN 200
+
 typedef struct {
     int id;
-    char text[200];
-    char image[200];
+    char text[TT_MAX_TEXT_LEN];
+    char image[TT_MAX_IMAGE_LEN];
 } Tutorial;
 
 typedef struct {

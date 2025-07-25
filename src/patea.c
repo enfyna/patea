@@ -47,7 +47,7 @@ global GObject* title_main;
 global GObject* title_result;
 
 global GObject* test_question;
-global GObject* test_choices[CHOICE_COUNT];
+global GObject* test_choices[LS_CHOICE_COUNT];
 
 global GObject* lb_result;
 global GObject* lb_tutorial;
@@ -100,7 +100,7 @@ prepare_question(void)
         vte_terminal_feed_child(VTE_TERMINAL(term), TERM_CLEAN_LINE);
     } else if (ls_state.qs->type == QUESTION_TEST) {
         gtk_label_set_text(GTK_LABEL(test_question), ls_state.qs->question);
-        for (size_t i = 0; i < CHOICE_COUNT; i++) {
+        for (size_t i = 0; i < LS_CHOICE_COUNT; i++) {
             gtk_widget_set_sensitive(GTK_WIDGET(test_choices[i]), true);
             gtk_button_set_label(GTK_BUTTON(test_choices[i]), ls_state.qs->choice[i]);
         }
@@ -125,7 +125,7 @@ change_page(const char* page_name)
         return;
     }
 
-    if (!starts_with(page_name, LESSON_PAGE_PREFIX)) {
+    if (!starts_with(page_name, LS_PREFIX)) {
         gtk_stack_set_visible_child_name(GTK_STACK(pt_stack), page_name);
         return;
     }
@@ -190,7 +190,7 @@ cb_login_user(GtkWidget* widget, gpointer data)
     tutorial_pos = 0;
 
     char buf[128] = { 0 };
-    snprintf(buf, 128, TX_MAIN_TITLE, user->name);
+    snprintf(buf, sizeof buf, TX_MAIN_TITLE, user->name);
     gtk_label_set_text(GTK_LABEL(title_main), buf);
 
     g_print("[LESSON] Selected user: [%d] %s\n", user->id, user->name);
@@ -246,7 +246,7 @@ continue_test(long answer)
             } while (buf_read >= BUF_SIZE);
 
         } else if (ls_state.qs->answer == 1) {
-            for (size_t i = 0; i < CHOICE_COUNT; i++) {
+            for (size_t i = 0; i < LS_CHOICE_COUNT; i++) {
                 if (strlen(ls_state.qs->choice[i]) == 0) {
                     continue;
                 }
@@ -295,11 +295,11 @@ continue_test(long answer)
             ls_state.correct_answers);
 
         char buf[BUF_SIZE] = { 0 };
-        snprintf(buf, 64, TX_LESSON_BUTTON,
+        snprintf(buf, sizeof buf, TX_LESSON_BUTTON,
             lesson->title, ls_state.correct_answers / (float)lesson->question_count * 100);
         gtk_button_set_label(GTK_BUTTON(lesson->bt), buf);
 
-        snprintf(buf, BUF_SIZE, TX_LESSON_RESULT,
+        snprintf(buf, sizeof buf, TX_LESSON_RESULT,
             ls_state.correct_answers, lesson->question_count);
         gtk_label_set_text(GTK_LABEL(lb_result), buf);
 
@@ -451,7 +451,7 @@ activate(GtkApplication* app, gpointer user_data)
 
                 lesson->bt = gtk_button_new();
 
-                gchar* page_name = g_strconcat(LESSON_PAGE_PREFIX, lesson->page_name, NULL);
+                gchar* page_name = g_strconcat(LS_PREFIX, lesson->page_name, NULL);
                 g_signal_connect(lesson->bt, "clicked", G_CALLBACK(cb_change_page), page_name);
 
                 gtk_box_pack_start(GTK_BOX(box), GTK_WIDGET(lesson->bt), false, true, 8);
