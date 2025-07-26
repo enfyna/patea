@@ -22,7 +22,7 @@ $(shell mkdir -p build)
 build/patea: $(SOURCES) $(HEADERS) 
 	$(CC) $(SOURCES) -o $@ $(CFLAGS) $(LIBS)
 
-build/%.o: src/%.c
+build/%.o: src/%.c $(HEADERS) 
 	$(CC) $< -c -o $@ $(CFLAGS) $(LIBS)
 
 build/miniaudio.o: src/third-party/miniaudio.c
