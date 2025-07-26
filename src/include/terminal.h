@@ -8,6 +8,7 @@
 #define TERM_CLEAR_SCREEN "\033[2J\r\n", 6
 #define TERM_CLEAN_LINE "\x15\n", 2
 
+#define TERM_MIN_FONT_SCALE (0.4)
 #define TERM_FONT_SCALE_FACTOR (0.2)
 
 #define CLR_R(x) (((x) & 0xff0000) >> 16)
@@ -22,5 +23,4 @@
 void term_spawn(GtkWidget* term);
 void cb_increase_term_font(GtkWidget* widget, gpointer data);
 void cb_decrease_term_font(GtkWidget* widget, gpointer data);
-void cb_term_input(GtkWidget* widget, gpointer data);
 void cb_term_eof(GtkWidget* widget, gpointer data);

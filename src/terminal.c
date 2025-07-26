@@ -89,16 +89,9 @@ void cb_decrease_term_font(GtkWidget* widget, gpointer data)
     GtkWidget* term = data;
     gdouble scale = vte_terminal_get_font_scale(VTE_TERMINAL(term));
     scale -= TERM_FONT_SCALE_FACTOR;
-    if (scale < TERM_FONT_SCALE_FACTOR * 2)
+    if (scale < TERM_MIN_FONT_SCALE)
         return;
     vte_terminal_set_font_scale(VTE_TERMINAL(term), scale);
-}
-
-void cb_term_input(GtkWidget* widget, gpointer data)
-{
-    (void)widget;
-    (void)data;
-    // g_print("[TERMINAL] Input: %d => %c\n", *(char*)data, *(char*)data);
 }
 
 void cb_term_eof(GtkWidget* term, gpointer data)

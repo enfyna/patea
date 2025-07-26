@@ -496,7 +496,6 @@ activate(GtkApplication* app, gpointer user_data)
 
         term_spawn(GTK_WIDGET(term));
 
-        g_signal_connect(term, "commit", G_CALLBACK(cb_term_input), NULL);
         g_signal_connect(term, "eof", G_CALLBACK(cb_term_eof), NULL);
     }
 
