@@ -42,6 +42,9 @@
 
          ./build/patea
 
+# Documentation
+
+For documentation check the [wiki](https://github.com/enfyna/patea/wiki).
 
 # Develop
 
