@@ -16,12 +16,12 @@
 <br>
 
 <p align="center">
-  <img src=https://github.com/user-attachments/assets/7b0ddcee-f069-4c41-bed7-61b78466d56b width=40%>
-  <img src=https://github.com/user-attachments/assets/1eebfd54-97c7-40c4-bfc9-095f69551a69 width=40%>
-  <img src=https://github.com/user-attachments/assets/86e17c55-dafc-4744-8ba4-3dd887b16370 width=40%>
-  <img src=https://github.com/user-attachments/assets/ab578bb1-29e1-4c3f-a1f4-8c2d042321a2 width=40%>
+  <img width=80% src="https://github.com/user-attachments/assets/09acb1d4-920b-45bf-a1a1-a86880a0cf05" />
+  <img width=40% src="https://github.com/user-attachments/assets/6316d577-043b-47eb-8ae2-d15c961b3841" />
+  <img width=40% src="https://github.com/user-attachments/assets/296188e4-66cd-4f5b-83e6-d81af103eb8e" />
+  <img width=40% src="https://github.com/user-attachments/assets/9e12843f-1007-4254-9bea-0a816993b296" />
+  <img width=40% src="https://github.com/user-attachments/assets/c20e19c7-aacc-4f75-af0f-7fb2240108cc" />
 </p>
-
 
 # Building
 
