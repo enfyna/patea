@@ -44,6 +44,16 @@ void user_init(sqlite3* db)
     sql_exec(db_user.db, cb_user_load, NULL, SQL_GET_USERS);
 }
 
+void user_free(void)
+{
+    for (size_t i = 0; i < db_user.users.count; i++) {
+        User* u = db_user.users.items[i];
+        free(u->name);
+    }
+
+    da_free(db_user.users);
+}
+
 void user_update(const char* key, const char* value)
 {
     sql_exec(db_user.db, NULL, NULL, SQL_UPDATE_USER, key, value, db_user.id_user);

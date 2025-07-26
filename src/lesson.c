@@ -134,6 +134,17 @@ void lesson_init(sqlite3* db)
     sql_exec(db_lesson.db, cb_lesson_load, NULL, SQL_GET_LESSONS);
 }
 
+void lesson_free(void)
+{
+    for (size_t i = 0; i < db_lesson.lessons.count; i++) {
+        Lesson* l = db_lesson.lessons.items[i];
+        free(l->page_name);
+        free(l->title);
+    }
+
+    da_free(db_lesson.lessons);
+}
+
 da lesson_get_lessons(void)
 {
     return db_lesson.lessons;

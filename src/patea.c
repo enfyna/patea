@@ -89,6 +89,7 @@ prepare_question(void)
     if (strlen(ls_state.qs->image) > 0) {
         GdkPixbuf* gp = gdk_pixbuf_new_from_resource_at_scale(ls_state.qs->image, 200, 200, FALSE, NULL);
         gtk_image_set_from_pixbuf(GTK_IMAGE(image), gp);
+        g_object_unref(gp);
     } else {
         gtk_image_clear(GTK_IMAGE(image));
     }
@@ -185,6 +186,7 @@ cb_tutorial_continue(GtkWidget* widget, gpointer data)
         if (strlen(t->image) > 0) {
             GdkPixbuf* gp = gdk_pixbuf_new_from_resource_at_scale(t->image, 200, 200, FALSE, NULL);
             gtk_image_set_from_pixbuf(GTK_IMAGE(im_tutorial), gp);
+            g_object_unref(gp);
         } else {
             gtk_image_set_from_icon_name(
                 GTK_IMAGE(im_tutorial), "gtk-info", GTK_ICON_SIZE_DIALOG);
@@ -344,6 +346,12 @@ cb_term_check_answer(GtkWidget* widget, gpointer data)
     continue_test(0);
 }
 
+static void destroy(gpointer data, GClosure* closure)
+{
+    (void)closure;
+    g_free(data);
+}
+
 internal void
 activate(GtkApplication* app, gpointer user_data)
 {
@@ -463,7 +471,8 @@ activate(GtkApplication* app, gpointer user_data)
                 lesson->bt = gtk_button_new();
 
                 gchar* page_name = g_strconcat(LS_PREFIX, lesson->page_name, NULL);
-                g_signal_connect(lesson->bt, "clicked", G_CALLBACK(cb_change_page), page_name);
+                g_signal_connect_data(lesson->bt, "clicked",
+                    G_CALLBACK(cb_change_page), page_name, destroy, 0);
 
                 gtk_box_pack_start(GTK_BOX(box), GTK_WIDGET(lesson->bt), false, true, 8);
             }
@@ -497,6 +506,7 @@ activate(GtkApplication* app, gpointer user_data)
         gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(pt_stack));
     }
 
+    g_object_unref(bd_main);
     gtk_widget_show_all(GTK_WIDGET(window));
 }
 
@@ -562,6 +572,9 @@ int main(int argc, char** argv)
     }
 
     sound_uninit();
+
+    user_free();
+    lesson_free();
 
     return status;
 }

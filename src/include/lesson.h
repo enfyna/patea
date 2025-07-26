@@ -59,6 +59,7 @@ typedef struct {
 } UserDailyResult;
 
 void lesson_init(sqlite3* db);
+void lesson_free(void);
 da lesson_get_lessons(void);
 Lesson* lesson_get_from_id(size_t id);
 Lesson* lesson_get_from_name(const char* page_name);
