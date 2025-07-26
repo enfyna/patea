@@ -4,10 +4,6 @@
     "SELECT * FROM USERS;"
 #define SQL_GET_USERS_ARGS ""
 
-#define SQL_GET_USER_LIST \
-    "SELECT name FROM USERS;"
-#define SQL_GET_USER_LIST_ARGS ""
-
 #define SQL_GET_USER_RESULTS \
     "SELECT * FROM LESSON_RESULTS WHERE user_id= %d;"
 #define SQL_GET_USER_RESULTS_ARGS "(%d)"
