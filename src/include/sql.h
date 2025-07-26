@@ -44,12 +44,25 @@
     "DO UPDATE SET correct_count=excluded.correct_count;"
 #define SQL_INSERT_LESSON_RESULT_ARGS "(%d, %d, %d)"
 
+#define SQL_GET_USER_DAILY_RESULT                                    \
+    "WITH filtered_results AS ("                                     \
+    "   SELECT * FROM LESSON_RESULTS WHERE "                         \
+    "   user_id = %zu AND complete_time = CURRENT_DATE),"            \
+    "correct_sum AS ( "                                              \
+    "   SELECT SUM(correct_count) AS correct FROM filtered_results)" \
+    "SELECT"                                                         \
+    "   COUNT(lq.question_id) AS solved,"                            \
+    "   COALESCE(cs.correct, 0) AS correct "                         \
+    "FROM filtered_results fr JOIN LESSON_QUESTIONS lq ON "          \
+    "   lq.lesson_id = fr.lesson_id, correct_sum cs;"
+#define SQL_GET_USER_DAILY_RESULT_ARGS "(%zu)"
+
 #define sql_exec(db, func, data, fmt, ...)                      \
     do {                                                        \
-        char buf[256] = { 0 };                                  \
-        snprintf(buf, sizeof buf, (fmt), ##__VA_ARGS__);               \
+        char buf[512] = { 0 };                                  \
+        snprintf(buf, sizeof buf, (fmt), ##__VA_ARGS__);        \
                                                                 \
-        g_print("[DB] %s" fmt##_ARGS " ", #fmt, ##__VA_ARGS__);   \
+        g_print("[DB] %s" fmt##_ARGS " ", #fmt, ##__VA_ARGS__); \
         char* err;                                              \
         int rc = sqlite3_exec(db, buf, (func), (data), &err);   \
         if (rc == SQLITE_OK) {                                  \

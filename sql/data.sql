@@ -38,6 +38,7 @@ create table LESSON_RESULTS (
 	correct_count int,
 	user_id int,
 	lesson_id int,
+	complete_time int NOT NULL DEFAULT CURRENT_DATE,
 	UNIQUE(user_id, lesson_id),
 	FOREIGN KEY (user_id) REFERENCES USERS(user_id),
 	FOREIGN KEY (lesson_id) REFERENCES LESSONS(lesson_id)

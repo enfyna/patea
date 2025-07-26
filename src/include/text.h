@@ -1,4 +1,5 @@
 #define TX_MAIN_TITLE "Merhaba %s!"
+#define TX_DAILY_RESULT "Bugün %d tane yeni soru çözdün!"
 #define TX_LESSON_BUTTON "%s [%.0lf%%]"
 #define TX_LESSON_RESULT "\n\n%d/%zu doğru cevapladın.\n\n"
 #define TX_LESSON_CHECK_NOTICE                            \

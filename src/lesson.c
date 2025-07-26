@@ -211,3 +211,32 @@ void lesson_update_bt_texts(int user_id)
 
     sql_exec(db_lesson.db, cb_lesson_result_get, NULL, SQL_GET_USER_RESULTS, user_id);
 }
+
+int cb_lesson_daily_result_get(void* data, int argc, char** argv, char** col_name)
+{
+    UserDailyResult* udr = data;
+
+    size_t used_arg_count = 0;
+    for (int i = 0; i < argc; i++) {
+        if (!strcmp(col_name[i], "correct")) {
+            udr->correct = atoi(argv[i]);
+            used_arg_count++;
+        } else if (!strcmp(col_name[i], "solved")) {
+            udr->solved = atoi(argv[i]);
+            used_arg_count++;
+        }
+    }
+
+    assert(used_arg_count == 2 && "Lesson Daily Result table changed");
+
+    return 0;
+}
+
+UserDailyResult lesson_get_daily_result(size_t user_id)
+{
+    UserDailyResult udr = { 0 };
+
+    sql_exec(db_lesson.db, cb_lesson_daily_result_get, &udr, SQL_GET_USER_DAILY_RESULT, user_id);
+
+    return udr;
+}

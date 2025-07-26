@@ -119,8 +119,23 @@ change_page(const char* page_name)
 
     g_print("[PAGE] from: %s => to: %s\n", current, page_name);
 
-    if (starts_with(page_name, PAGE_TUTORIAL)) {
+    if (!strcmp(page_name, PAGE_TUTORIAL)) {
         cb_tutorial_continue(NULL, (long*)1);
+        gtk_stack_set_visible_child_name(GTK_STACK(pt_stack), page_name);
+        return;
+    }
+
+    if (!strcmp(page_name, PAGE_MAIN)) {
+        User* user = user_get_user(user_get_current());
+        UserDailyResult udr = lesson_get_daily_result(user->id);
+        char buf[128] = { 0 };
+        int w = snprintf(buf, sizeof buf, TX_MAIN_TITLE, user->name);
+        if (udr.solved > 0) {
+            snprintf(&buf[w], sizeof(buf) - w, " " TX_DAILY_RESULT,
+                udr.solved);
+        }
+        gtk_label_set_text(GTK_LABEL(title_main), buf);
+
         gtk_stack_set_visible_child_name(GTK_STACK(pt_stack), page_name);
         return;
     }
@@ -188,10 +203,6 @@ cb_login_user(GtkWidget* widget, gpointer data)
 
     user_set_current(user->id);
     tutorial_pos = 0;
-
-    char buf[128] = { 0 };
-    snprintf(buf, sizeof buf, TX_MAIN_TITLE, user->name);
-    gtk_label_set_text(GTK_LABEL(title_main), buf);
 
     g_print("[LESSON] Selected user: [%d] %s\n", user->id, user->name);
 
@@ -523,7 +534,7 @@ int main(int argc, char** argv)
         lesson_init(db);
         tutorial_init(db);
     } else {
-        g_print("[DB] Can't open database: %s\n", sqlite3_errmsg(db));
+        g_error("[DB] Can't open database: %s\n", sqlite3_errmsg(db));
     }
 
     sound_init();
