@@ -46,7 +46,7 @@ int cb_question_load(void* data, int argc, char** argv, char** col_name)
     return 0;
 }
 
-LessonQuestion* lesson_get_question(size_t id, size_t pos)
+LessonQuestion* lesson_get_question_alloc(size_t id, size_t pos)
 {
     LessonQuestion* l = NULL;
 
@@ -78,7 +78,7 @@ int cb_category_load(void* data, int argc, char** argv, char** col_name)
     return 0;
 }
 
-da lesson_get_categories(void)
+da lesson_get_categories_alloc(void)
 {
     da lcc = {
         .items = malloc(sizeof(LessonCategory*) * 2),

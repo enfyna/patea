@@ -74,7 +74,7 @@ prepare_question(void)
     if (ls_state.qs != NULL) {
         free(ls_state.qs);
     }
-    ls_state.qs = lesson_get_question(ls_state.ls->id, ls_state.q_pos);
+    ls_state.qs = lesson_get_question_alloc(ls_state.ls->id, ls_state.q_pos);
 
     gboolean is_term = ls_state.qs->type == QUESTION_TERMINAL;
 
@@ -176,7 +176,7 @@ cb_tutorial_continue(GtkWidget* widget, gpointer data)
         return;
     }
 
-    Tutorial* t = get_tutorial(tutorial_pos);
+    Tutorial* t = get_tutorial_alloc(tutorial_pos);
     if (t == NULL) {
         user_update("tutorial", "1");
         change_page(PAGE_MAIN);
@@ -445,7 +445,7 @@ activate(GtkApplication* app, gpointer user_data)
         }
 
         da lessons = lesson_get_lessons();
-        da categories = lesson_get_categories();
+        da categories = lesson_get_categories_alloc();
         for (size_t i = 0; i < categories.count; i++) {
             LessonCategory* cat = categories.items[i];
             GtkWidget* box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 8);

@@ -33,7 +33,7 @@ int cb_tutorial_load(void* data, int argc, char** argv, char** col_name)
     return 0;
 }
 
-Tutorial* get_tutorial(size_t id)
+Tutorial* get_tutorial_alloc(size_t id)
 {
     Tutorial* t = NULL;
 

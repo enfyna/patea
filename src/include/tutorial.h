@@ -17,4 +17,4 @@ typedef struct {
 } TutorialDB;
 
 void tutorial_init(sqlite3* db);
-Tutorial* get_tutorial(size_t id);
+Tutorial* get_tutorial_alloc(size_t id);

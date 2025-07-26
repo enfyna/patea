@@ -62,8 +62,8 @@ void lesson_init(sqlite3* db);
 da lesson_get_lessons(void);
 Lesson* lesson_get_from_id(size_t id);
 Lesson* lesson_get_from_name(const char* page_name);
-LessonQuestion* lesson_get_question(size_t id, size_t pos);
-da lesson_get_categories(void);
+LessonQuestion* lesson_get_question_alloc(size_t id, size_t pos);
+da lesson_get_categories_alloc(void);
 UserDailyResult lesson_get_daily_result(size_t user);
 
 void lesson_update_bt_texts(int user_id);
